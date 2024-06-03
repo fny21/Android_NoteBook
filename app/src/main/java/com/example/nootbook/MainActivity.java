@@ -1,23 +1,50 @@
 package com.example.nootbook;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity {
+
+    private ActivityResultLauncher<Intent> startLogInActivityForResult;
 
     private List<String> label_names;
     private List<String> list_for_adapter;
@@ -29,11 +56,106 @@ public class MainActivity extends AppCompatActivity {
     private TreeMap<Integer, Integer> deleted_label_data_map;
     private labelRecycleViewAdapter label_recycle_view_adapter;
 
+    private ConstraintLayout user_info_layout;
+    private ConstraintLayout change_user_info_background_layout;
+    private RecyclerView recyclerView;
+
+    private TextView shoot_head_button;
+    private TextView upload_head_button;
+
+    String header_image_path;
+    Bitmap header_image_bitmap;
+    String new_header_image_path;
+    Bitmap new_header_image_bitmap;
+
+    ImageView user_head_imageview;
+    ImageView new_user_head_imageview;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 注册ActivityResultLauncher
+        startLogInActivityForResult = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == RESULT_OK) {
+                            // 从Intent中提取数据
+                            Intent data = result.getData();
+                            if (data != null) {
+                                String returned_username = data.getStringExtra("username");
+                                show_error("username: "+returned_username);
+                                set_data_after_log_in(returned_username);
+                            }
+                        }
+                        else{;
+                            show_error("登录后才可使用笔记");
+                            start_log_in_activity();
+                        }
+                    }
+                }
+        );
+
+        start_log_in_activity();
+
+        user_head_imageview = findViewById(R.id.user_info_head);
+        new_user_head_imageview = findViewById(R.id.change_user_info_head);
+
+        change_user_info_background_layout = findViewById(R.id.change_user_info_background);
+        user_info_layout = findViewById(R.id.user_info);
+        recyclerView = (RecyclerView) findViewById(R.id.label_list);
+        change_user_info_background_layout.setVisibility(View.INVISIBLE);
+        user_info_layout.setEnabled(true);
+
+        user_info_layout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 在这里处理点击事件
+                show_error("修改个人信息");
+                change_user_info_background_layout.setVisibility(View.VISIBLE);
+                new_header_image_path = null;
+                new_header_image_bitmap = null;
+                user_info_layout.setEnabled(false);
+            }
+        });
+
+        Button finish_change_user_info_button = findViewById(R.id.change_user_info_button);
+        finish_change_user_info_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 在这里处理点击事件
+                show_error("修改成功");
+                change_user_info_background_layout.setVisibility(View.INVISIBLE);
+                if(new_header_image_bitmap!=null){
+                    header_image_path = new_header_image_path;
+                    header_image_bitmap = new_header_image_bitmap;
+                    BitmapDrawable temp_bitmapDrawable = new BitmapDrawable(getResources(), header_image_bitmap);
+                    user_head_imageview.setBackground(temp_bitmapDrawable);
+                }
+                user_info_layout.setEnabled(true);
+            }
+        });
+
+        shoot_head_button = findViewById(R.id.shoot_user_info_head);
+        upload_head_button = findViewById(R.id.upload_user_info_head);
+
+        shoot_head_button.setOnClickListener(v -> {
+            applyPermission(1);
+        });
+        upload_head_button.setOnClickListener(v -> {
+            applyPermission(2);
+        });
+    }
+
+    void start_log_in_activity(){
+        Intent intent = new Intent(this, RegesOrLogIn.class);
+        startLogInActivityForResult.launch(intent);
+    }
+
+    void set_data_after_log_in(String username){
         label_names = new ArrayList<>();
         list_for_adapter = new ArrayList<>();
         adapter_map_to_label = new TreeMap<>();
@@ -58,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
         dp_to_px_ratio = getResources().getDisplayMetrics().density;
 
         // 笔记列表
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.label_list);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this );
         //设置布局管理器
         recyclerView.setLayoutManager(layoutManager);
@@ -237,6 +358,10 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
+    void show_error(String error_message){
+        Toast.makeText(this, error_message, Toast.LENGTH_SHORT).show();
+    }
+
     void put_new_adapter_label_map(int adapter_position, int label_position){
         adapter_map_to_label.put(adapter_position, label_position);
         label_map_to_adapter.put(label_position, adapter_position);
@@ -382,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
             add_in_label_and_adapter(delete_position_in_adapter + 1, delete_label_position + 1, new_deleted_note_name);
         }
         else{
-            label_names.add(delete_label_position+1, note_name);
+            label_names.add(delete_label_position+1, new_deleted_note_name);
         }
     }
     void delete_label_notes(int position_in_adapter){
@@ -406,6 +531,119 @@ public class MainActivity extends AppCompatActivity {
         for(int i=delete_start_index; i<delete_end_index; i++){
             String temp_note_name = list_for_adapter.get(delete_start_index);  // 这里就是delete_start_index，因为每次删除后面的东西都会前移
             move_note_to_recent_delete(delete_start_index, temp_note_name);
+        }
+    }
+
+    void applyPermission(int permission_type){
+        if(permission_type==1){  // 相机拍摄头像
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // 权限尚未被授予，请求权限
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.CAMERA}, permission_type);
+            } else {
+                // 权限已经被授予，继续你的任务
+                openCamera();
+            }
+        }
+        else if(permission_type==2){  // 本地上传头像
+            if(Build.VERSION.SDK_INT<=32) {
+                //检测权限
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // 如果没有权限，则申请需要的权限
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, permission_type);
+                } else {
+                    // 已经申请了权限
+                    openGallery();
+                }
+            }
+            else{
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // 如果没有权限，则申请需要的权限
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.READ_MEDIA_IMAGES}, permission_type);
+                } else {
+                    // 已经申请了权限
+                    openGallery();
+                }
+            }
+        }
+        else{
+            Log.e(String.valueOf(this), "unexpected permission type");
+        }
+    }
+
+    /**
+     * 用户选择是否开启权限操作后的回调；TODO 同意/拒绝
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {  // 相机拍摄
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 用户授权
+                openCamera();
+            }else {
+                // 用户拒绝授权
+                Toast.makeText(this, "相机权限被拒绝！", Toast.LENGTH_SHORT).show();
+                Log.d("HL", "你拒绝使用存储权限！");
+            }
+        }
+        else if(requestCode==2) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 用户授权
+                openGallery();
+            }else {
+                // 用户拒绝授权
+                Toast.makeText(this, "存储权限被拒绝！", Toast.LENGTH_SHORT).show();
+                Log.d("HL", "你拒绝使用存储权限！");
+            }
+        }
+    }
+
+    void openCamera(){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, 11);
+        }
+    }
+
+    void openGallery(){
+        Intent intent = new Intent(Intent.ACTION_PICK, null);
+        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI , "image/*");
+        startActivityForResult(intent, 12);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data == null){
+            Log.e(String.valueOf(this), "data is null");
+        }
+        if (requestCode == 11) {  // 打开相机，拍照新头像
+            if (resultCode == RESULT_OK && data != null) {
+                Bundle extras = data.getExtras();
+                assert extras != null;
+                new_header_image_bitmap = (Bitmap) extras.get("data");
+                BitmapDrawable temp_bitmapDrawable = new BitmapDrawable(getResources(), new_header_image_bitmap);
+                new_user_head_imageview.setBackground(temp_bitmapDrawable);
+            }
+        }
+        if (requestCode == 12) { // 打开相册，选新头像
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                try {
+                    new_header_image_path = Objects.requireNonNull(data.getData()).toString();
+                    InputStream inputStream = getContentResolver().openInputStream(Objects.requireNonNull(data.getData()));
+                    new_header_image_bitmap = BitmapFactory.decodeStream(inputStream);
+                    BitmapDrawable temp_bitmapDrawable = new BitmapDrawable(getResources(), new_header_image_bitmap);
+                    new_user_head_imageview.setBackground(temp_bitmapDrawable);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
