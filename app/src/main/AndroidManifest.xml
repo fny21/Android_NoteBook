@@ -28,6 +28,9 @@
             android:name=".RegesOrLogIn"
             android:exported="false"/>
         <activity
+            android:name=".EditNote"
+            android:exported="false"/>
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

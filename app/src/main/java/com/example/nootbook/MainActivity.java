@@ -45,6 +45,7 @@ import java.util.TreeMap;
 public class MainActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> startLogInActivityForResult;
+    private ActivityResultLauncher<Intent> startEditNoteActivityForResult;
 
     private List<String> label_names;
     private List<String> list_for_adapter;
@@ -94,6 +95,26 @@ public class MainActivity extends AppCompatActivity {
                         else{;
                             show_error("登录后才可使用笔记");
                             start_log_in_activity();
+                        }
+                    }
+                }
+        );
+
+        startEditNoteActivityForResult  = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == RESULT_OK) {
+                            // 从Intent中提取数据
+                            Intent data = result.getData();
+                            if (data != null) {
+                                String returned_save_time = data.getStringExtra("save_time");
+                                show_error("save_time: "+returned_save_time);
+                            }
+                        }
+                        else{;
+                            show_error("编辑笔记出错");
                         }
                     }
                 }
@@ -153,6 +174,12 @@ public class MainActivity extends AppCompatActivity {
     void start_log_in_activity(){
         Intent intent = new Intent(this, RegesOrLogIn.class);
         startLogInActivityForResult.launch(intent);
+    }
+
+    void edit_note(String note_message){
+        Intent intent = new Intent(this, EditNote.class);
+        intent.putExtra("note_message", note_message);
+        startEditNoteActivityForResult.launch(intent);
     }
 
     void set_data_after_log_in(String username){
@@ -268,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
                 else if(clicked_item==3){  // "add_or_edit"
                     String temp_item_name = list_for_adapter.get(position);
                     if(temp_item_name.startsWith("Note-")){
-
+                        edit_note(temp_item_name);
                     }
                     else {
                         // change shown list
@@ -646,4 +673,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
 }

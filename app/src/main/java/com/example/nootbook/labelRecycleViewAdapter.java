@@ -18,6 +18,7 @@ import java.util.List;
 
 public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleViewAdapter.labelViewHolder> {
 
+
     private Context context;
     private List<String> mList;
     private String label_prefix;
