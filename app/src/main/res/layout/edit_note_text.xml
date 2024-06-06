@@ -14,8 +14,9 @@
         android:layout_marginTop="3dp"
         android:hint="请输入文本..."
         android:inputType="text"
-        android:textSize="18sp"
+        android:textSize="24sp"
         android:background="@null"
+        android:gravity="start|top"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

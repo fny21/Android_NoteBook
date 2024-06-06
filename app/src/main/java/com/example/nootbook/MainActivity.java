@@ -659,7 +659,7 @@ public class MainActivity extends AppCompatActivity {
                 new_user_head_imageview.setBackground(temp_bitmapDrawable);
             }
         }
-        if (requestCode == 12) { // 打开相册，选新头像
+        else if (requestCode == 12) { // 打开相册，选新头像
             if (resultCode == Activity.RESULT_OK && data != null) {
                 try {
                     new_header_image_path = Objects.requireNonNull(data.getData()).toString();
