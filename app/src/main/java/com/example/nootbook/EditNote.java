@@ -11,7 +11,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -40,10 +43,12 @@ public class EditNote extends AppCompatActivity {
     private ImageView edit_image_button;
     private ImageView edit_audio_button;
     private ImageView edit_video_button;
+    private EditText edit_note_title;
 
     private RecyclerView recyclerView;
     private EditNoteLabelRecycleViewAdapter edit_note_label_recycle_view_adapter;
     private float dp_to_px_ratio;  // 将dp转为像素值时乘的比例因子
+    private String note_name;
 
     private List<edit_note_item> item_list_for_adapter;
 
@@ -56,8 +61,7 @@ public class EditNote extends AppCompatActivity {
         setContentView(R.layout.edit_one_note);
 
         Intent intent = getIntent();
-        String note_message = intent.getStringExtra("note_message");
-        show_message(note_message);
+        note_name = intent.getStringExtra("note_message");
 
         dp_to_px_ratio = getResources().getDisplayMetrics().density;
 
@@ -66,6 +70,19 @@ public class EditNote extends AppCompatActivity {
         edit_image_button = findViewById(R.id.edit_title_image);
         edit_audio_button = findViewById(R.id.edit_title_audio);
         edit_video_button = findViewById(R.id.edit_title_video);
+        edit_note_title = findViewById(R.id.edit_one_note_title);
+        edit_note_title.setText(note_name);
+
+        edit_note_title.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                note_name = edit_note_title.getText().toString();
+            }
+        });
 
         edit_back_button.setOnClickListener(v -> {
             back_clicked();
@@ -108,6 +125,7 @@ public class EditNote extends AppCompatActivity {
     void back_clicked(){
         show_message("edit title: back clicked");
         Intent returnIntent = new Intent();
+        returnIntent.putExtra("new_name", note_name);
         Date currentDate = new Date();
         String dateString = currentDate.toString();
         returnIntent.putExtra("save_time", dateString);
@@ -229,7 +247,7 @@ public class EditNote extends AppCompatActivity {
                         openGalleryForImage();
                     }
                 }
-                else if(permission_type==4){
+                else if(permission_type==5){
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO)
                             != PackageManager.PERMISSION_GRANTED) {
                         // 如果没有权限，则申请需要的权限
@@ -332,13 +350,13 @@ public class EditNote extends AppCompatActivity {
 
     void openGalleryForVideo(){
         Intent intent = new Intent(Intent.ACTION_PICK, null);
-        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI , "video/*");
+        intent.setType("video/*");
         startActivityForResult(intent, 115);
     }
 
     void get_audio(){
         Intent intent = new Intent(Intent.ACTION_PICK, null);
-        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI , "audio/*");
+        intent.setType("audio/*");
         startActivityForResult(intent, 114);
     }
 

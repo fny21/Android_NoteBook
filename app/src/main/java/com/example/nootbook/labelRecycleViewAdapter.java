@@ -1,11 +1,14 @@
 package com.example.nootbook;
 
 import android.content.Context;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,24 +17,42 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.Date;
 import java.util.List;
 
+class note_list_item{
+    int label_id;
+    int note_id;
+    int type;  // 0 for label, 1 for note
+    boolean is_hided;  // only for label, hide or show notes of this label.
+    boolean deleted;  // only for notes, whether it has been deleted
+    String name;  // label name or note title
+    String init_time;  // 创建时间
+    String modify_time;  // 最近修改时间
+
+    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_){
+        type = type_;
+        is_hided = is_hided_;
+        deleted = deleted_;
+        name = name_;
+        label_id = label_id_;
+        note_id = note_id_;
+
+        Date currentDate = new Date();
+        init_time = currentDate.toString();
+        modify_time = currentDate.toString();
+    }
+}
+
 public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleViewAdapter.labelViewHolder> {
-
-
     private Context context;
-    private List<String> mList;
-    private String label_prefix;
-    private String label_hide_prefix;
-    private String label_show_prefix;
-    private String note_prefix;
-    private String deleted_note_prefix;
+    private List<note_list_item> mList;
     private float dp_to_px_ratio;
 
     // 定义回调接口
     public interface OnItemClickListener {
         //clicked_item: 0 for nothing(click the background), 1 for hide or show, 2 for label/text name, 3 for edit/add button, 4 for delete
-        void onItemClick(int position, int clicked_item);
+        void onItemClick(int position, int clicked_item, String new_name);
     }
 
     // 持有回调接口的引用
@@ -44,7 +65,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
 
     class labelViewHolder extends RecyclerView.ViewHolder {
         private ImageButton label_show_or_hide;
-        private TextView label_name;
+        private EditText label_name;
         private ImageButton label_add_note;
         private ImageButton label_delete_all;
 
@@ -57,14 +78,9 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
         }
     }
 
-    public labelRecycleViewAdapter(Context context, List<String> mList, float dp_to_px_ratio_) {
+    public labelRecycleViewAdapter(Context context, List<note_list_item> mList, float dp_to_px_ratio_) {
         this.context=context;
         this.mList = mList;
-        label_prefix = "Label";
-        label_hide_prefix = "Label-hide";
-        label_show_prefix = "Label-show";
-        note_prefix = "Note";
-        deleted_note_prefix = "Note---del";
         dp_to_px_ratio = dp_to_px_ratio_;
     }
 
@@ -81,7 +97,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
                 public void onClick(View v) {
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        mListener.onItemClick(position, 0);
+                        mListener.onItemClick(position, 0, null);
                     }
                 }
             });
@@ -91,17 +107,25 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
                 public void onClick(View v) {
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        mListener.onItemClick(position, 1);
+                        mListener.onItemClick(position, 1, null);
                     }
                 }
             });
 
-            new_label_view_holder.label_name.setOnClickListener(new View.OnClickListener() {
+            new_label_view_holder.label_name.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void onClick(View v) {
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override
+                public void afterTextChanged(Editable s) {
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        mListener.onItemClick(position, 2);
+                        String new_name = new_label_view_holder.label_name.getText().toString();
+                        if(new_name.length()==0){
+                            new_name = "illegal name";
+                        }
+                        mListener.onItemClick(position, 2, new_name);
                     }
                 }
             });
@@ -111,7 +135,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
                 public void onClick(View v) {
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        mListener.onItemClick(position, 3);
+                        mListener.onItemClick(position, 3, null);
                     }
                 }
             });
@@ -121,7 +145,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
                 public void onClick(View v) {
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        mListener.onItemClick(position, 4);
+                        mListener.onItemClick(position, 4, null);
                     }
                 }
             });
@@ -131,13 +155,13 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
 
     @Override
     public void onBindViewHolder(@NonNull labelViewHolder holder, int position) {
-        String one_label = this.mList.get(position);
-        if(one_label.startsWith(this.label_prefix)){
+        note_list_item one_item = this.mList.get(position);
+        if(one_item.type==0){
             ConstraintLayout.LayoutParams show_or_hide_button_layout = (ConstraintLayout.LayoutParams) holder.label_show_or_hide.getLayoutParams();
             show_or_hide_button_layout.width = Math.round((float) 15 * dp_to_px_ratio);
             holder.label_show_or_hide.setLayoutParams(show_or_hide_button_layout);
             holder.label_show_or_hide.setVisibility(View.VISIBLE);
-            if(!one_label.substring(12).startsWith("Recently Deleted")){
+            if(!one_item.name.startsWith("Recently Deleted")){
                 holder.label_add_note.setVisibility(View.VISIBLE);
                 holder.label_add_note.setBackgroundResource(R.drawable.blue_add);
             }
@@ -145,21 +169,21 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
                 holder.label_add_note.setVisibility(View.INVISIBLE);
             }
             holder.label_delete_all.setBackgroundResource(R.drawable.rubbish);
-            if(one_label.startsWith(this.label_hide_prefix)){
+            if(one_item.is_hided){
                 holder.label_show_or_hide.setBackgroundResource(R.drawable.arrow_label_hide);
             }
             else{
                 holder.label_show_or_hide.setBackgroundResource(R.drawable.arrow_label_show);
             }
         }
-        else if (one_label.startsWith(this.note_prefix)) {
+        else if (one_item.type==1) {
             ConstraintLayout.LayoutParams show_or_hide_button_layout = (ConstraintLayout.LayoutParams) holder.label_show_or_hide.getLayoutParams();
             show_or_hide_button_layout.width = Math.round((float) 25 * dp_to_px_ratio);
             holder.label_show_or_hide.setLayoutParams(show_or_hide_button_layout);
             holder.label_show_or_hide.setVisibility(View.INVISIBLE);
             holder.label_delete_all.setBackgroundResource(R.drawable.rubbish);
             holder.label_add_note.setVisibility(View.VISIBLE);
-            if(one_label.startsWith(this.deleted_note_prefix)){
+            if(one_item.deleted){
                 holder.label_add_note.setBackgroundResource(R.drawable.call_back);
             }
             else {
@@ -169,26 +193,25 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
         else{
             Log.e(String.valueOf(this), "unexpected string: string should begin with 'label' or 'note'");
         }
-        holder.label_name.setText(one_label.substring(12));
+        holder.label_name.setText(one_item.name);
+        /*
         holder.label_name.setEllipsize(TextUtils.TruncateAt.MARQUEE);
         holder.label_name.setMarqueeRepeatLimit(-1); // -1 表示无限重复
         holder.label_name.setFocusable(true);
         holder.label_name.setFocusableInTouchMode(true);
         holder.label_name.setSelected(true);
+        */
     }
 
-    public void addData(int position, String new_name){  //label_or_note: 0 for label, 1 for note
-        // mList.add(position, new_name);
+    public void addData(int position){  //label_or_note: 0 for label, 1 for note
         notifyItemInserted(position);
     }
 
     public void deleteData(int position){
-        // mList.remove(position);
         notifyItemRemoved(position);
     }
 
-    public void changeData(int position, String new_name){
-        // mList.set(position, new_name);
+    public void changeData(int position){
         notifyItemChanged(position);
     }
 

@@ -119,6 +119,7 @@ public class RegesOrLogIn extends AppCompatActivity {
                 if(input_username.length()>0&&input_password.length()>0) {
                     Intent returnIntent = new Intent();
                     returnIntent.putExtra("username", input_username);
+                    returnIntent.putExtra("password", input_password);
                     setResult(RESULT_OK, returnIntent);
                     finish();
                 }
