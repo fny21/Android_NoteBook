@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -63,6 +64,7 @@ class edit_note_item{
     boolean video_edit_show;
     Uri video_uri;
     int video_width;
+    MediaController video_controler;
 
     edit_note_item(int type_){  // 0 text, 1 image, 2 audio, 3 video
         type = type_;
@@ -80,6 +82,7 @@ class on_item_click_listener_result{
     Bitmap image_bitmap;
 
     Uri video_uri;
+    MediaController video_controler;
 
     byte[] audio_byte;
 
@@ -95,7 +98,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
 
     private Context context;
 
-    private List<edit_note_item> item_list;
+    private List<edit_note_item> item_list;  // TODO
     private float dp_to_px_ratio;
 
     private int selected_position;
@@ -201,6 +204,8 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
         cursor_position_in_text = -1;
         waiting_image_position = -1;
         image_audio_video_result = new on_item_click_listener_result();
+        waiting_audio_position = -1;
+        waiting_video_position = -1;
     }
 
     @Override
@@ -220,6 +225,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
 
             if (mListener != null) {
                 new_label_view_holder.edit_note_image_shoot_button.setOnClickListener(v -> {
+                    selected_position = -1;
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         waiting_image_position = position;
@@ -227,6 +233,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                     }
                 });
                 new_label_view_holder.edit_note_image_upload_button.setOnClickListener(v -> {
+                    selected_position = -1;
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         waiting_image_position = position;
@@ -245,11 +252,12 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
 
             if (mListener != null) {
                 new_label_view_holder.edit_note_get_audio_button.setOnClickListener(v -> {
+                    selected_position = -1;
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         edit_note_item item_in_listener = item_list.get(position);
                         if(!item_in_listener.getting_audio) {
-                            if(waiting_audio_position!=-1) {
+                            if(waiting_audio_position==-1) {
                                 waiting_audio_position = position;
                                 mListener.onItemClick(position, 1);
                             }
@@ -298,6 +306,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                     }
                 });
                 new_label_view_holder.edit_note_upload_audio_button.setOnClickListener(v -> {
+                    selected_position = -1;
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         waiting_audio_position = position;
@@ -316,6 +325,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
 
             if (mListener != null) {
                 new_label_view_holder.edit_note_upload_video_button.setOnClickListener(v -> {
+                    selected_position = -1;
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         waiting_video_position = position;
@@ -349,10 +359,12 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
     void set_video_after_result(){
         edit_note_item aim_edit_item = item_list.get(waiting_video_position);
         aim_edit_item.video_uri = image_audio_video_result.video_uri;
+        aim_edit_item.video_controler = image_audio_video_result.video_controler;
         aim_edit_item.video_show = true;
         aim_edit_item.video_width = 340;
         item_list.set(waiting_video_position, aim_edit_item);
         notifyItemChanged(waiting_video_position);
+        waiting_video_position = -1;
     }
 
     void set_audio_after_result(){
@@ -361,6 +373,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
         aim_edit_item.audio_show = true;
         item_list.set(waiting_audio_position, aim_edit_item);
         notifyItemChanged(waiting_audio_position);
+        waiting_audio_position = -1;
     }
 
     void get_record_audio_permission(){
@@ -417,6 +430,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             holder.edit_note_image_total_box.setLayoutParams(edit_note_image_total_box_layout_param);
 
             holder.edit_note_image_view.setOnClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item aim_edit_note_item_in_listener = item_list.get(position_in_listener);
                 if(aim_edit_note_item_in_listener.image_edit_show) {
@@ -432,16 +446,19 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             });
 
             holder.edit_note_image_edit_layout.setOnLongClickListener(v -> {
+                selected_position = -1;
                 insert_edit_text(holder.getAdapterPosition()+1);
                 // 返回true则不会再触发onClickListener
                 return true;
             });
 
             holder.edit_note_image_delete_button.setOnClickListener(v -> {
+                selected_position = -1;
                 delete_image_audio_video(holder.getAdapterPosition());
             });
 
             holder.edit_note_image_bigger_image_view.setOnClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item aim_edit_note_item_in_listener = item_list.get(position_in_listener);
                 if(aim_edit_note_item_in_listener.image_show) {
@@ -455,6 +472,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             });
 
             holder.edit_note_image_smaller_image_view.setOnClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item aim_edit_note_item_in_listener = item_list.get(position_in_listener);
                 if(aim_edit_note_item_in_listener.image_show) {
@@ -559,6 +577,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             holder.edit_note_audio_total_box.setLayoutParams(edit_note_audio_total_box_layout_param);
 
             holder.edit_note_audio_layout.setOnClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item aim_edit_note_item_in_listener = item_list.get(position_in_listener);
                 if(aim_edit_note_item_in_listener.audio_edit_show) {
@@ -574,6 +593,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             });
 
             holder.edit_note_audio_play.setOnClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item edit_item_in_listener = item_list.get(position_in_listener);
                 if(edit_item_in_listener.audio_playing){
@@ -589,12 +609,14 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             });
 
             holder.edit_note_edit_audio_box.setOnLongClickListener(v -> {
+                selected_position = -1;
                 insert_edit_text(holder.getAdapterPosition()+1);
                 // 返回true则不会再触发onClickListener
                 return true;
             });
 
             holder.edit_note_delete_audio_button.setOnClickListener(v -> {
+                selected_position = -1;
                 delete_image_audio_video(holder.getAdapterPosition());
             });
         }
@@ -617,6 +639,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                     edit_note_video_layout_param.width = Math.round(aim_edit_note_item.video_width * dp_to_px_ratio);
                     edit_note_video_total_box_layout_param.height += video_height_in_px;
                     holder.edit_note_video_view.setVideoURI(aim_edit_note_item.video_uri);
+                    holder.edit_note_video_view.setMediaController(aim_edit_note_item.video_controler);
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -645,7 +668,8 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             }
             holder.edit_note_video_total_box.setLayoutParams(edit_note_video_total_box_layout_param);
 
-            holder.edit_note_video_total_box.setOnClickListener(v -> {
+            holder.edit_note_video_view.setOnLongClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item aim_edit_note_item_in_listener = item_list.get(position_in_listener);
                 if(aim_edit_note_item_in_listener.video_edit_show) {
@@ -658,19 +682,23 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                     item_list.set(position_in_listener, aim_edit_note_item_in_listener);
                     notifyItemChanged(position_in_listener);
                 }
+                return true;
             });
 
-            holder.edit_note_video_view.setOnLongClickListener(v -> {
+            holder.edit_note_video_total_box.setOnLongClickListener(v -> {
+                selected_position = -1;
                 insert_edit_text(holder.getAdapterPosition()+1);
                 // 返回true则不会再触发onClickListener
                 return true;
             });
 
             holder.edit_note_delete_video_button.setOnClickListener(v -> {
+                selected_position = -1;
                 delete_image_audio_video(holder.getAdapterPosition());
             });
 
             holder.edit_note_video_bigger_image_view.setOnClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item aim_edit_note_item_in_listener = item_list.get(position_in_listener);
                 if(aim_edit_note_item_in_listener.video_show) {
@@ -684,6 +712,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             });
 
             holder.edit_note_video_smaller_image_view.setOnClickListener(v -> {
+                selected_position = -1;
                 int position_in_listener = holder.getAdapterPosition();
                 edit_note_item aim_edit_note_item_in_listener = item_list.get(position_in_listener);
                 if(aim_edit_note_item_in_listener.video_show) {
@@ -703,7 +732,6 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                 edit_text_lines=1;
             }
             aim_edit_note_item.edit_text_line_num = edit_text_lines;
-            item_list.set(position, aim_edit_note_item);
             if(position == this.item_list.size()-1){  // 这是最后一个
                 ConstraintLayout.LayoutParams edit_note_edit_text_layout = (ConstraintLayout.LayoutParams) holder.edit_note_edit_text.getLayoutParams();
                 edit_note_edit_text_layout.height = Math.round((float) 350 * dp_to_px_ratio);
@@ -711,8 +739,11 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             }
             else{  // 不是最后一个
                 ConstraintLayout.LayoutParams edit_note_edit_text_layout = (ConstraintLayout.LayoutParams) holder.edit_note_edit_text.getLayoutParams();
-                edit_note_edit_text_layout.height = Math.round((float) edit_text_lines * 25 * dp_to_px_ratio);
+                edit_note_edit_text_layout.height = Math.round((float) edit_text_lines * 30 * dp_to_px_ratio);
                 holder.edit_note_edit_text.setLayoutParams(edit_note_edit_text_layout);
+            }
+            if(selected_position==position){
+                holder.edit_note_edit_text.setSelection(cursor_position_in_text);
             }
 
             holder.edit_note_edit_text.addTextChangedListener(new TextWatcher() {

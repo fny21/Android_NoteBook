@@ -133,6 +133,16 @@ public class RegesOrLogIn extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 show_message("注册按钮被点击了");
+
+                EditText username_edittext = regester_part.view.findViewById(R.id.regester_first_line_user_text);
+                EditText password_edittext = regester_part.view.findViewById(R.id.regester_second_line_password_text);
+                EditText repassword_edittext = regester_part.view.findViewById(R.id.regester_third_line_repassword_text);
+
+                String input_username = username_edittext.getText().toString();
+                String input_password = password_edittext.getText().toString();
+                String input_repassword = repassword_edittext.getText().toString();
+
+                // TODO: regester
             }
         });
     }

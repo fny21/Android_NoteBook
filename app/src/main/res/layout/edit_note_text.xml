@@ -13,10 +13,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
         android:hint="请输入文本..."
-        android:inputType="text"
+        android:inputType="textMultiLine"
         android:textSize="24sp"
         android:background="@null"
         android:gravity="start|top"
+        android:scrollbars="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -52,14 +52,14 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> startLogInActivityForResult;
     private ActivityResultLauncher<Intent> startEditNoteActivityForResult;
 
-    private List<note_list_item> label_names;
-    private List<note_list_item> list_for_adapter;
-    private TreeMap<Integer, Integer> adapter_map_to_label;
-    private TreeMap<Integer, Integer> label_map_to_adapter;
+    private List<note_list_item> label_names;  // TODO
+    private List<note_list_item> list_for_adapter;  // TODO
+    private TreeMap<Integer, Integer> adapter_map_to_label;  // TODO
+    private TreeMap<Integer, Integer> label_map_to_adapter;  // TODO
     private float dp_to_px_ratio;  // 将dp转为像素值时乘的比例因子
-    private int delete_label_position;
-    private int unlabeled_label_position;
-    private TreeMap<Integer, Integer> deleted_note_to_label_map;  // 删除的note原本属于哪个label
+    private int delete_label_position;  // TODO
+    private int unlabeled_label_position;  // TODO
+    private TreeMap<Integer, Integer> deleted_note_to_label_map;  // 删除的note原本属于哪个label  // TODO
     private labelRecycleViewAdapter label_recycle_view_adapter;
 
     private ConstraintLayout user_info_layout;
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView upload_head_button;
 
     String header_image_path;
-    Bitmap header_image_bitmap;
+    Bitmap header_image_bitmap;  // TODO
     String new_header_image_path;
     Bitmap new_header_image_bitmap;
 
@@ -87,11 +87,11 @@ public class MainActivity extends AppCompatActivity {
     TextView change_user_info_password_text_view;
     TextView change_user_info_password_again_text_view;
 
-    int label_unique_index;
-    int note_unique_index;
-    String user_sign;
-    String user_name;
-    String pass_word;
+    int label_unique_index;  // TODO
+    int note_unique_index;  // TODO
+    String user_sign;  // TODO
+    String user_name;  // TODO
+    String pass_word;  // TODO
 
     int editing_position;
 
@@ -135,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
                             // 从Intent中提取数据
                             Intent data = result.getData();
                             if (data != null) {
+                                // TODO: 编辑笔记返回的数据（如果需要）
                                 String new_note_name = data.getStringExtra("new_name");
                                 assert new_note_name != null;
                                 if(new_note_name.length()==0){
@@ -190,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         setting_add_label.setOnClickListener(v -> {
             note_list_item new_note_item = new note_list_item(0, true, false, "new label", get_unique_label_index(), -1);
             add_in_label_and_adapter(0, 0, new_note_item);
-            change_map(0, 1, 1);
+            change_map(-1, 1, 1);
             put_new_adapter_label_map(0, 0);
         });
 
@@ -325,8 +326,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void edit_note(int position_in_adapter, note_list_item note_message){
+        // TODO: 给EditNote传数据（如果需要）
         Intent intent = new Intent(this, EditNote.class);
-        // TODO
         intent.putExtra("note_message", note_message.name);
         editing_position = position_in_adapter;
         startEditNoteActivityForResult.launch(intent);
@@ -879,7 +880,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 用户选择是否开启权限操作后的回调；TODO 同意/拒绝
+     * 用户选择是否开启权限操作后的回调
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

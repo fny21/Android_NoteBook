@@ -6,8 +6,8 @@
 
     <ImageButton
         android:id="@+id/label_hide_or_show"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
+        android:layout_width="30dp"
+        android:layout_height="20dp"
         android:scaleType="centerInside"
         android:contentDescription="arrow_hide_or_show"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -18,7 +18,7 @@
 
     <EditText
         android:id="@+id/one_label_name"
-        android:layout_width="250dp"
+        android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:hint="请输入标题..."
         android:inputType="text"
@@ -34,8 +34,8 @@
 
     <ImageButton
         android:id="@+id/one_label_add_button"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:scaleType="centerInside"
         android:contentDescription="add"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -47,8 +47,8 @@
 
     <ImageButton
         android:id="@+id/one_label_delete_all"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:scaleType="centerInside"
         android:contentDescription="delete"
         app:layout_constraintBottom_toBottomOf="parent"

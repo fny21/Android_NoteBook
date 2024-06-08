@@ -16,6 +16,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.MediaController;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -50,7 +51,7 @@ public class EditNote extends AppCompatActivity {
     private float dp_to_px_ratio;  // 将dp转为像素值时乘的比例因子
     private String note_name;
 
-    private List<edit_note_item> item_list_for_adapter;
+    private List<edit_note_item> item_list_for_adapter;  // TODO
 
     public String new_image_path_result;
     public Bitmap new_image_bitmap_result;
@@ -420,6 +421,7 @@ public class EditNote extends AppCompatActivity {
             if (resultCode == Activity.RESULT_OK && data != null) {
                 Uri result_video_uri = data.getData();
                 edit_note_label_recycle_view_adapter.image_audio_video_result.video_uri = result_video_uri;
+                edit_note_label_recycle_view_adapter.image_audio_video_result.video_controler = new MediaController(this);
                 edit_note_label_recycle_view_adapter.set_video_after_result();
             }
         }

@@ -32,7 +32,7 @@
             android:id="@+id/edit_title_save"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:layout_marginStart="165dp"
+            android:layout_marginStart="125dp"
             android:background="@drawable/edit_save"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/edit_title_back"
@@ -94,7 +94,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/edit_one_note_item_list"
-        android:layout_width="380dp"
+        android:layout_width="350dp"
         android:layout_height="600dp"
         android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"

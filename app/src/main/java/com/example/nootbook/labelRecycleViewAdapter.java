@@ -119,6 +119,9 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
                 public void onTextChanged(CharSequence s, int start, int before, int count) {}
                 @Override
                 public void afterTextChanged(Editable s) {
+                    if(!new_label_view_holder.label_name.hasFocus()){
+                        return;
+                    }
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         String new_name = new_label_view_holder.label_name.getText().toString();
