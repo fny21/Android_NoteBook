@@ -256,7 +256,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                     int position = new_label_view_holder.getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         edit_note_item item_in_listener = item_list.get(position);
-                        if(!item_in_listener.getting_audio) {
+                        if(!item_in_listener.getting_audio && !item_in_listener.audio_playing) {
                             if(waiting_audio_position==-1) {
                                 waiting_audio_position = position;
                                 mListener.onItemClick(position, 1);
