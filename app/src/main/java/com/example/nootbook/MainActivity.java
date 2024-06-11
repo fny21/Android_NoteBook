@@ -232,34 +232,44 @@ public class MainActivity extends AppCompatActivity {
         finish_change_user_info_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 在这里处理点击事件
                 show_error("修改成功");
                 change_user_info_background_layout.setVisibility(View.INVISIBLE);
-                if(new_header_image_bitmap!=null){
+
+                if (new_header_image_bitmap != null) {
                     header_image_path = new_header_image_path;
                     header_image_bitmap = new_header_image_bitmap;
                     BitmapDrawable temp_bitmapDrawable = new BitmapDrawable(getResources(), header_image_bitmap);
                     user_head_imageview.setBackground(temp_bitmapDrawable);
                 }
+
                 user_info_layout.setEnabled(true);
                 String new_user_sign = user_sign_text_view.getText().toString();
-                if(new_user_sign.length()!=0){
+                if (new_user_sign.length() != 0) {
                     user_sign = new_user_sign;
                     hello_user.setText("Hi! " + user_sign);
                 }
+
                 String new_user_name = change_user_info_username_text_view.getText().toString();
-                if(!new_user_name.equals(user_name)&&new_user_name.length()>0){
+                String new_pass_word = change_user_info_password_text_view.getText().toString();
+                String new_confirm_pass_word = change_user_info_password_again_text_view.getText().toString();
+
+                if (!new_user_name.equals(user_name) && new_user_name.length() > 0) {
                     user_name = new_user_name;
                     change_user_info_username_text_view.setText(user_name);
                     show_error("用户名修改成功");
                 }
-                String new_pass_word = change_user_info_password_text_view.getText().toString();
-                String new_confirm_pass_word = change_user_info_password_again_text_view.getText().toString();
-                if(new_pass_word.equals(new_confirm_pass_word) && !new_pass_word.equals(pass_word)){
+
+                if (new_pass_word.equals(new_confirm_pass_word) && !new_pass_word.equals(pass_word)) {
                     pass_word = new_pass_word;
                     change_user_info_password_text_view.setText(pass_word);
                     change_user_info_password_again_text_view.setText(pass_word);
                     show_error("密码修改成功");
+                }
+
+                // 更新Firebase中的用户信息
+                updateUserProfile(user_name, new_header_image_path);
+                if (!new_pass_word.equals(pass_word)) {
+                    updateUserPassword(new_pass_word);
                 }
             }
         });
@@ -337,6 +347,35 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void updateUserProfile(String displayName, String photoUri) {
+        authHelper.updateUserProfile(displayName, photoUri, new UserAuthHelper.AuthCallback() {
+            @Override
+            public void onSuccess(FirebaseUser user) {
+                Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(MainActivity.this, "用户信息更新失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateUserPassword(String newPassword) {
+        authHelper.updateUserPassword(newPassword, new UserAuthHelper.AuthCallback() {
+            @Override
+            public void onSuccess(FirebaseUser user) {
+                Toast.makeText(MainActivity.this, "密码修改成功", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(MainActivity.this, "密码修改失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 
     void start_log_in_activity(){
         Intent intent = new Intent(this, RegesOrLogIn.class);

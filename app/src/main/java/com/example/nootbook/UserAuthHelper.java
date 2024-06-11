@@ -22,13 +22,28 @@ public class UserAuthHelper {
         return mAuth.getCurrentUser();
     }
 
-    public void registerUser(String email, String password, final AuthCallback callback) {
-        mAuth.createUserWithEmailAndPassword(email, password)
+    public void registerUser(String username, String password, final AuthCallback callback) {
+        mAuth.createUserWithEmailAndPassword(username + "@example.com", password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            callback.onSuccess(mAuth.getCurrentUser());
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(username)
+                                    .build();
+                            if (user != null) {
+                                user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            callback.onSuccess(user);
+                                        } else {
+                                            callback.onFailure(task.getException());
+                                        }
+                                    }
+                                });
+                            }
                         } else {
                             callback.onFailure(task.getException());
                         }
@@ -36,8 +51,8 @@ public class UserAuthHelper {
                 });
     }
 
-    public void loginUser(String email, String password, final AuthCallback callback) {
-        mAuth.signInWithEmailAndPassword(email, password)
+    public void loginUser(String username, String password, final AuthCallback callback) {
+        mAuth.signInWithEmailAndPassword(username + "@example.com", password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -59,6 +74,23 @@ public class UserAuthHelper {
                     .build();
 
             user.updateProfile(profileUpdates)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                callback.onSuccess(user);
+                            } else {
+                                callback.onFailure(task.getException());
+                            }
+                        }
+                    });
+        }
+    }
+
+    public void updateUserPassword(String newPassword, final AuthCallback callback) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            user.updatePassword(newPassword)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {

@@ -23,6 +23,26 @@ public class FirestoreHelper {
         this.db = FirebaseFirestore.getInstance();
     }
 
+    public void addUser(String userId, String username, String signature, String avatarUri, final FirestoreCallback callback) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("username", username);
+        user.put("signature", signature);
+        user.put("avatarUri", avatarUri);
+
+        db.collection("users").document(userId)
+                .set(user)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(null);
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+    }
+
     public void addNote(String userId, String title, String content, String tag, final FirestoreCallback callback) {
         Map<String, Object> note = new HashMap<>();
         note.put("title", title);

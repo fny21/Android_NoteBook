@@ -137,16 +137,15 @@
             android:id="@+id/regester_button"
             android:layout_width="100dp"
             android:layout_height="70dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:text="注册"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
             android:background="@drawable/grey_tran"
             android:padding="16dp"
-            />
+            android:text="注册"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
