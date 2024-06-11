@@ -36,6 +36,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -95,10 +100,20 @@ public class MainActivity extends AppCompatActivity {
 
     int editing_position;
 
+    private UserAuthHelper authHelper;
+    private FirestoreHelper firestoreHelper;
+    private EditText emailEditText, passwordEditText, titleEditText, contentEditText, tagEditText;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Firebase initialize
+        FirebaseApp.initializeApp(this);
+        authHelper = new UserAuthHelper();
+        firestoreHelper = new FirestoreHelper();
 
         label_unique_index = 0;
         note_unique_index = 0;
@@ -960,3 +975,4 @@ public class MainActivity extends AppCompatActivity {
         return note_unique_index;
     }
 }
+
