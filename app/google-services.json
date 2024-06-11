@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "574114546020",
+    "project_id": "memometa-2a312",
+    "storage_bucket": "memometa-2a312.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:574114546020:android:d09ec9c77b13949f5bfa71",
+        "android_client_info": {
+          "package_name": "com.example.nootbook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ0yqMWXCmLaJiPORpu7elai9ab9pxxC4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

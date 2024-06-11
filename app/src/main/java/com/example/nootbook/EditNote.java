@@ -29,6 +29,8 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,6 +38,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class EditNote extends AppCompatActivity {
@@ -56,13 +59,22 @@ public class EditNote extends AppCompatActivity {
     public String new_image_path_result;
     public Bitmap new_image_bitmap_result;
 
+    private UserAuthHelper authHelper;
+    private FirestoreHelper firestoreHelper;
+
+    private String note_id;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_one_note);
 
+        authHelper = new UserAuthHelper();
+        firestoreHelper = new FirestoreHelper();
+
         Intent intent = getIntent();
-        note_name = intent.getStringExtra("note_message");
+        note_id = intent.getStringExtra("note_id"); // 从Intent中获取笔记ID
 
         dp_to_px_ratio = getResources().getDisplayMetrics().density;
 
@@ -72,7 +84,6 @@ public class EditNote extends AppCompatActivity {
         edit_audio_button = findViewById(R.id.edit_title_audio);
         edit_video_button = findViewById(R.id.edit_title_video);
         edit_note_title = findViewById(R.id.edit_one_note_title);
-        edit_note_title.setText(note_name);
 
         edit_note_title.addTextChangedListener(new TextWatcher() {
             @Override
@@ -85,43 +96,84 @@ public class EditNote extends AppCompatActivity {
             }
         });
 
-        edit_back_button.setOnClickListener(v -> {
-            back_clicked();
-        });
-        edit_save_button.setOnClickListener(v -> {
-            save_clicked();
-        });
-        edit_image_button.setOnClickListener(v -> {
-            image_clicked();
-        });
-        edit_audio_button.setOnClickListener(v -> {
-            audio_clicked();
-        });
-        edit_video_button.setOnClickListener(v -> {
-            video_clicked();
-        });
+        edit_back_button.setOnClickListener(v -> back_clicked());
+        edit_save_button.setOnClickListener(v -> save_clicked());
+        edit_image_button.setOnClickListener(v -> image_clicked());
+        edit_audio_button.setOnClickListener(v -> audio_clicked());
+        edit_video_button.setOnClickListener(v -> video_clicked());
 
-        recyclerView = (RecyclerView) findViewById(R.id.edit_one_note_item_list);
-        // 笔记列表
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this );
-        //设置布局管理器
+        recyclerView = findViewById(R.id.edit_one_note_item_list);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        //设置为垂直布局，这也是默认的
         layoutManager.setOrientation(RecyclerView.VERTICAL);
 
-        item_list_for_adapter=new ArrayList<>();
-        edit_note_item new_text_item = new edit_note_item(0);
-        new_text_item.edit_text_string="";
-        new_text_item.position = 0;
-        item_list_for_adapter.add(new_text_item);
-
-        //设置Adapter
+        item_list_for_adapter = new ArrayList<>();
         edit_note_label_recycle_view_adapter = new EditNoteLabelRecycleViewAdapter(this, item_list_for_adapter, this.dp_to_px_ratio);
         bind_on_item_click_listener();
         recyclerView.setAdapter(edit_note_label_recycle_view_adapter);
-        //设置增加或删除条目的动画
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+
+        loadNoteDetails();
     }
+
+    private void loadNoteDetails() {
+        String userId = authHelper.getCurrentUser().getUid();
+        firestoreHelper.getNoteDetail(userId, note_id, new FirestoreHelper.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                DocumentSnapshot document = (DocumentSnapshot) result;
+                if (document.exists()) {
+                    note_name = document.getString("title");
+                    edit_note_title.setText(note_name);
+
+                    List<Map<String, Object>> items = (List<Map<String, Object>>) document.get("items");
+                    for (Map<String, Object> item : items) {
+                        int type = ((Long) item.get("type")).intValue();
+                        edit_note_item noteItem = new edit_note_item(type);
+                        noteItem.position = ((Long) item.get("position")).intValue();
+
+                        switch (type) {
+                            case 0: // Text
+                                noteItem.edit_text_string = (String) item.get("edit_text_string");
+                                noteItem.edit_text_line_num = ((Long) item.get("edit_text_line_num")).intValue();
+                                break;
+                            case 1: // Image
+                                noteItem.image_path = (String) item.get("image_path");
+                                noteItem.image_show = (Boolean) item.get("image_show");
+                                noteItem.image_edit_show = (Boolean) item.get("image_edit_show");
+                                noteItem.image_width = ((Long) item.get("image_width")).intValue();
+                                if (noteItem.image_path != null && !noteItem.image_path.isEmpty()) {
+                                    noteItem.image_bitmap = BitmapFactory.decodeFile(noteItem.image_path);
+                                }
+                                break;
+                            case 2: // Audio
+                                noteItem.audio_show = (Boolean) item.get("audio_show");
+                                noteItem.audio_edit_show = (Boolean) item.get("audio_edit_show");
+                                List<Long> audioByteList = (List<Long>) item.get("audio_byte");
+                                noteItem.audio_byte = new byte[audioByteList.size()];
+                                for (int i = 0; i < audioByteList.size(); i++) {
+                                    noteItem.audio_byte[i] = audioByteList.get(i).byteValue();
+                                }
+                                noteItem.audio_output_file_path = (String) item.get("audio_output_file_path");
+                                break;
+                            case 3: // Video
+                                break;
+                        }
+
+                        item_list_for_adapter.add(noteItem);
+                    }
+                    edit_note_label_recycle_view_adapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(EditNote.this, "加载笔记失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
 
     void back_clicked(){
         show_message("edit title: back clicked");

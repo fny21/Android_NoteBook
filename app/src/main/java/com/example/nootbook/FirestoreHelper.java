@@ -1,5 +1,6 @@
 package com.example.nootbook;
 
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -14,7 +15,7 @@ import androidx.annotation.NonNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FirestoreHelper {
+public class FirestoreHelper {      
 
     private FirebaseFirestore db;
 
@@ -63,6 +64,22 @@ public class FirestoreHelper {
                     }
                 });
     }
+
+    public void getNoteDetail(String userId, String noteId, final FirestoreCallback callback) {
+        db.collection("users").document(userId).collection("notes").document(noteId)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(task.getResult());
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+    }
+
 
     public void deleteNote(String userId, String noteId, final FirestoreCallback callback) {
         db.collection("users").document(userId).collection("notes").document(noteId)
