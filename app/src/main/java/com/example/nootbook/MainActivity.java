@@ -58,12 +58,12 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> startEditNoteActivityForResult;
 
     private List<note_list_item> label_names;  // TODO
-    private List<note_list_item> list_for_adapter;  // TODO
-    private TreeMap<Integer, Integer> adapter_map_to_label;  // TODO
-    private TreeMap<Integer, Integer> label_map_to_adapter;  // TODO
+    private List<note_list_item> list_for_adapter;
+    private TreeMap<Integer, Integer> adapter_map_to_label;
+    private TreeMap<Integer, Integer> label_map_to_adapter;
     private float dp_to_px_ratio;  // 将dp转为像素值时乘的比例因子
-    private int delete_label_position;  // TODO
-    private int unlabeled_label_position;  // TODO
+    private int delete_label_position;
+    private int unlabeled_label_position;
     private TreeMap<Integer, Integer> deleted_note_to_label_map;  // 删除的note原本属于哪个label  // TODO
     private labelRecycleViewAdapter label_recycle_view_adapter;
 
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         label_unique_index = 0;
         note_unique_index = 0;
 
-        // 注册ActivityResultLauncher
+        // 注册ActivityResultLaunchernote
         startLogInActivityForResult = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback<ActivityResult>() {
@@ -133,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
                                 set_data_after_log_in(returned_username, returned_password);
                             }
                         }
-                        else{;
+                        else{
+                            Log.e(String.valueOf(this), "login error"+result.getResultCode());
                             show_error("登录后才可使用笔记");
                             start_log_in_activity();
                         }
@@ -385,6 +386,7 @@ public class MainActivity extends AppCompatActivity {
     void edit_note(int position_in_adapter, note_list_item note_message){
         // TODO: 给EditNote传数据（如果需要）
         Intent intent = new Intent(this, EditNote.class);
+        intent.putExtra("note_id", note_message.note_id);
         intent.putExtra("note_message", note_message.name);
         editing_position = position_in_adapter;
         startEditNoteActivityForResult.launch(intent);
@@ -410,6 +412,8 @@ public class MainActivity extends AppCompatActivity {
         user_name = username;
         pass_word = password;
 
+
+
 //        label_names.add(new note_list_item(0, true, false, "You have not created a label, this label is really really long, long long long long long...", get_unique_label_index(), -1));
 //        label_names.add(new note_list_item(1, false, false, "1", -1, get_unique_note_index()));
 //        label_names.add(new note_list_item(1, false, false, "2", -1, get_unique_note_index()));
@@ -420,8 +424,10 @@ public class MainActivity extends AppCompatActivity {
 //        label_names.add(new note_list_item(1, false, false, "6", -1, get_unique_note_index()));
 //        label_names.add(new note_list_item(1, false, false, "7", -1, get_unique_note_index()));
 //        label_names.add(new note_list_item(0, true, false, "Last! You have not created a label, this label is really really long, long long long long long...", get_unique_label_index(), -1));
-//        label_names.add(new note_list_item(0, true, false, "Unlabeled notes", get_unique_label_index(), -1));
-//        label_names.add(new note_list_item(0, true, false, "Recently Deleted", get_unique_label_index(), -1));
+        if(label_names.size()==0) {
+            label_names.add(new note_list_item(0, true, false, "Unlabeled notes", get_unique_label_index(), -1));
+            label_names.add(new note_list_item(0, true, false, "Recently Deleted", get_unique_label_index(), - 1));
+        }
 
         dp_to_px_ratio = getResources().getDisplayMetrics().density;
 
@@ -603,14 +609,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadUserNotes() {
-        String userId = authHelper.getCurrentUser().getUid();
-        firestoreHelper.getNotes(userId, new FirestoreHelper.FirestoreCallback() {
+        String user_id = authHelper.getCurrentUser().getUid();
+        firestoreHelper.getNotes(user_id, new FirestoreHelper.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
-                QuerySnapshot querySnapshot = (QuerySnapshot) result;
-                for (QueryDocumentSnapshot document : querySnapshot) {
-                    note_list_item item = document.toObject(note_list_item.class);
-                    label_names.add(item);
+                    note_list_item note_item = new note_list_item();
+                    QueryDocumentSnapshot document = (QueryDocumentSnapshot) result;
+                    note_item.name = document.getString("title");
+                    // TODO: edit_time
+//                    note_item.init_time = document.getDate("timestamp").toString();
+//                    note_item.modify_time = document.getDate("timestamp").toString();
+//                    note_item.type = document.getData("type");
+
+
                 }
                 set_adapter_list_from_main_list(true);
             }

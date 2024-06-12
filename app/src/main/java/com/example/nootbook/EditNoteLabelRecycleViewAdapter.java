@@ -66,6 +66,8 @@ class edit_note_item{
     int video_width;
     MediaController video_controler;
 
+    String large_model_result;
+
     edit_note_item(int type_){  // 0 text, 1 image, 2 audio, 3 video
         type = type_;
     }

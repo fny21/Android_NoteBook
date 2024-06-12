@@ -12,7 +12,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FirestoreHelper {      
@@ -21,6 +23,22 @@ public class FirestoreHelper {
 
     public FirestoreHelper() {
         this.db = FirebaseFirestore.getInstance();
+        addNote("1", "1", new HashMap<String, Object>() {{
+            put("title", "test");
+            put("content", "test");
+            put("timestamp", System.currentTimeMillis());
+        }}, new FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                System.out.println("Note added successfully");
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                System.out.println("Failed to add note");
+            }
+        }
+        );
     }
 
     public void addUser(String userId, String username, String signature, String avatarUri, final FirestoreCallback callback) {
@@ -43,36 +61,10 @@ public class FirestoreHelper {
                 });
     }
 
-    public void addNote(String userId, String title, String content, String tag, final FirestoreCallback callback) {
-        Map<String, Object> note = new HashMap<>();
-        note.put("title", title);
-        note.put("content", content);
-        note.put("tag", tag);
-        note.put("timestamp", System.currentTimeMillis());
-
+    public void addNote(String userId, String noteId, Map<String, Object> note, final FirestoreCallback callback) {
         db.collection("users").document(userId).collection("notes")
-                .add(note)
-                .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentReference> task) {
-                        if (task.isSuccessful()) {
-                            callback.onSuccess(task.getResult());
-                        } else {
-                            callback.onFailure(task.getException());
-                        }
-                    }
-                });
-    }
-
-    public void updateNote(String userId, String noteId, String title, String content, String tag, final FirestoreCallback callback) {
-        Map<String, Object> note = new HashMap<>();
-        note.put("title", title);
-        note.put("content", content);
-        note.put("tag", tag);
-        note.put("timestamp", System.currentTimeMillis());
-
-        db.collection("users").document(userId).collection("notes").document(noteId)
-                .update(note)
+                .document(noteId) // 使用noteId作为文档ID
+                .set(note)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -84,6 +76,45 @@ public class FirestoreHelper {
                     }
                 });
     }
+
+
+
+
+    public void updateNote(String userId, String noteId, Map<String, Object> note, final FirestoreCallback callback) {
+        DocumentReference noteRef = db.collection("users").document(userId).collection("notes").document(noteId);
+
+        noteRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        // Document exists, update it
+                        noteRef.update(note)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            callback.onSuccess(null);
+                                        } else {
+                                            callback.onFailure(task.getException());
+                                        }
+                                    }
+                                });
+                    } else {
+                        // Document does not exist, create it
+                        addNote(userId, noteId, note, callback);
+                    }
+                } else {
+                    callback.onFailure(task.getException());
+                }
+            }
+        });
+    }
+
+
+
+
 
     public void getNoteDetail(String userId, String noteId, final FirestoreCallback callback) {
         db.collection("users").document(userId).collection("notes").document(noteId)
@@ -116,21 +147,28 @@ public class FirestoreHelper {
                 });
     }
 
+
     public void getNotes(String userId, final FirestoreCallback callback) {
-        db.collection("users").document(userId).collection("notes")
+        db.collectionGroup("notes")
+                .whereEqualTo("userId", userId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            callback.onSuccess(task.getResult());
+                            List<Map<String, Object>> notes = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                notes.add(document.getData());
+                            }
+                            callback.onSuccess(notes);
                         } else {
                             callback.onFailure(task.getException());
                         }
                     }
                 });
     }
+
 
     public interface FirestoreCallback {
         void onSuccess(Object result);

@@ -30,6 +30,16 @@ class note_list_item{
     String init_time;  // 创建时间
     String modify_time;  // 最近修改时间
 
+    note_list_item()
+    {
+        type = 0;
+        is_hided = false;
+        deleted = false;
+        name = "";
+        label_id = -1;
+        note_id = -1;
+    }
+
     note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_){
         type = type_;
         is_hided = is_hided_;
