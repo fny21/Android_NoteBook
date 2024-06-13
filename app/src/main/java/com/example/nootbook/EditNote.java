@@ -30,9 +30,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.example.nootbook.FirestoreHelper.FirestoreCallback;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;

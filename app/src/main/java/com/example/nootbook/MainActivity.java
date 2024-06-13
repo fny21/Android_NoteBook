@@ -282,17 +282,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // 更新Firebase中的用户信息
-                firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, deleted_note_to_label_map, new FirestoreHelper.FirestoreCallback() {
-                    @Override
-                    public void onSuccess(Object result) {
-                        Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        Toast.makeText(MainActivity.this, "用户信息更新失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                saveData();
             }
         });
 
@@ -305,8 +295,48 @@ public class MainActivity extends AppCompatActivity {
         upload_head_button.setOnClickListener(v -> {
             applyPermission(2);
         });
+    }
 
-//        startLogInActivityForResult.launch(new Intent(this, RegesOrLogIn.class));
+    void saveData()
+    {
+        firestoreHelper = new FirestoreHelper(label_names, deleted_note_to_label_map, header_image_bitmap, label_unique_index, note_unique_index, user_sign, user_name, pass_word);
+        firestoreHelper.saveLocalVariablesToDatabase(authHelper.getCurrentUser().getUid(), new FirestoreHelper.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+
+            }
+        });
+    }
+
+    void loadData()
+    {
+        firestoreHelper = new FirestoreHelper();
+        firestoreHelper.loadVariablesFromDatabase(authHelper.getCurrentUser().getUid(), new FirestoreHelper.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                if (result instanceof FirestoreHelper) {
+                    FirestoreHelper firestoreHelper = (FirestoreHelper) result;
+                    label_names = firestoreHelper.label_names;
+                    deleted_note_to_label_map = firestoreHelper.deleted_note_to_label_map;
+                    header_image_bitmap = firestoreHelper.header_image_bitmap;
+                    label_unique_index = firestoreHelper.label_unique_index;
+                    note_unique_index = firestoreHelper.note_unique_index;
+                    user_sign = firestoreHelper.user_sign;
+                    user_name = firestoreHelper.user_name;
+                    pass_word = firestoreHelper.pass_word;
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+
+            }
+        });
     }
 
     void set_adapter_list_from_main_list(boolean notify_change){
@@ -533,7 +563,7 @@ public class MainActivity extends AppCompatActivity {
                                             int position_in_label = locate_in_label_from_position_in_adapter(position);
                                             delete_from_adapter_and_label(position, position_in_label);
                                             change_map(position, -1, -1);
-                                            firestoreHelper.comlpeteDeleteNote(authHelper.getCurrentUser().getUid(), temp_item.note_id, new FirestoreHelper.FirestoreCallback() {
+                                            firestoreHelper.completeDeleteNote(authHelper.getCurrentUser().getUid(), temp_item.note_id, new FirestoreHelper.FirestoreCallback() {
                                                 @Override
                                                 public void onSuccess(Object result) {
                                                 }
@@ -622,17 +652,7 @@ public class MainActivity extends AppCompatActivity {
                         deleteNoteUpdate();
 
                         // 更新用户信息
-                        firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, deleted_note_to_label_map, new FirestoreHelper.FirestoreCallback() {
-                            @Override
-                            public void onSuccess(Object result) {
-                                Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onFailure(Exception e) {
-                                Toast.makeText(MainActivity.this, "用户信息更新失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        saveData();
                     }
 
                     @Override
@@ -734,9 +754,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
 
     void sort_label_names(int start_label_position, int sort_mode){
         int end_label_position = label_names.size();
