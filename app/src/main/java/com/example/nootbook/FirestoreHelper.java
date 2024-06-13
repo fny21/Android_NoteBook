@@ -145,6 +145,22 @@ public class FirestoreHelper {
                 });
     }
 
+    public void addLabel(String userId, String labelId, Map<String, Object> label, final FirestoreCallback callback) {
+        db.collection("users").document(userId).collection("labels")
+                .document(labelId) // 使用labelId作为文档ID
+                .set(label)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(null);
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+    }
+
     public void updateNote(String userId, String noteId, Map<String, Object> note, final FirestoreCallback callback) {
         DocumentReference noteRef = db.collection("users").document(userId).collection("notes").document(noteId);
 
@@ -222,8 +238,6 @@ public class FirestoreHelper {
                     }
                 });
     }
-
-
 
 
     public interface FirestoreCallback {

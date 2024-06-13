@@ -636,10 +636,10 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(Object result) {
                 if (result instanceof QuerySnapshot) {
                     QuerySnapshot querySnapshot = (QuerySnapshot) result;
-                    label_names.clear(); // 清空旧的数据
                     for (QueryDocumentSnapshot document : querySnapshot) {
                         note_list_item note_item = new note_list_item();
                         note_item.note_id = document.getId().hashCode();
+                        note_item.label_id = document.getLong("label_id") != null ? document.getLong("label_id").intValue() : -1;
                         note_item.name = document.getString("title");
                         note_item.init_time = document.getTimestamp("timestamp").toDate().toString();
                         note_item.modify_time = document.getTimestamp("timestamp").toDate().toString();
