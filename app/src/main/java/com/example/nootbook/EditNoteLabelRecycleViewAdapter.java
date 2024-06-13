@@ -128,6 +128,8 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
         private View itemView;
         EditText edit_note_edit_text;
 
+        TextView edit_note_large_model_text;
+
         ConstraintLayout edit_note_image_total_box;
         ImageView edit_note_image_view;
         ConstraintLayout edit_note_image_edit_layout;
@@ -195,6 +197,10 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             edit_note_delete_video_button = itemView.findViewById(R.id.edit_one_note_delete_video);
             edit_note_video_bigger_image_view = itemView.findViewById(R.id.edit_one_note_video_bigger);
             edit_note_video_smaller_image_view = itemView.findViewById(R.id.edit_one_note_video_smaller);
+        }
+
+        public void init_large_model_text(){
+            edit_note_large_model_text = itemView.findViewById(R.id.edit_one_note_large_model_text);
         }
     }
 
@@ -338,11 +344,19 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
 
             return new_label_view_holder;
         }
-        else {  // ViewType=0，EditText
+        else if(viewType==0){  // ViewType=0，EditText
             View itemView = LayoutInflater.from(this.context).inflate(R.layout.edit_note_text, parent, false);
             labelViewHolder new_label_view_holder = new labelViewHolder(itemView, this.context);
 
             new_label_view_holder.init_edit_text();
+
+            return new_label_view_holder;
+        }
+        else {  // viewType=5，large model output
+            View itemView = LayoutInflater.from(this.context).inflate(R.layout.edit_note_large_model_text, parent, false);
+            labelViewHolder new_label_view_holder = new labelViewHolder(itemView, this.context);
+
+            new_label_view_holder.init_large_model_text();
 
             return new_label_view_holder;
         }
@@ -727,7 +741,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                 }
             });
         }
-        else {  // ViewType=0，EditText
+        else if(viewType==0){  // ViewType=0，EditText
             holder.edit_note_edit_text.setText(aim_edit_note_item.edit_text_string);
             int edit_text_lines = holder.edit_note_edit_text.getLineCount();
             if(edit_text_lines<1){
@@ -795,6 +809,13 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                 // 返回true则不会再触发onClickListener
                 return true;
             });
+        }
+        else{
+            holder.edit_note_large_model_text.setText("摘要（由大模型自动生成，仅供参考）："+aim_edit_note_item.large_model_result);
+            int edit_text_lines = holder.edit_note_large_model_text.getLineCount();
+            ConstraintLayout.LayoutParams edit_note_large_model_text_layout = (ConstraintLayout.LayoutParams) holder.edit_note_large_model_text.getLayoutParams();
+            edit_note_large_model_text_layout.height = Math.round((float) edit_text_lines * 30 * dp_to_px_ratio);
+            holder.edit_note_large_model_text.setLayoutParams(edit_note_large_model_text_layout);
         }
         item_list.set(position, aim_edit_note_item);
     }
