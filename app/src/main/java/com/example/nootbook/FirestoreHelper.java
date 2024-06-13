@@ -107,7 +107,6 @@ public class FirestoreHelper {
             label.put("deleted", labelNames.get(i).deleted);
             label.put("init_time", labelNames.get(i).init_time);
             label.put("modify_time", labelNames.get(i).modify_time);
-            label.put("note_id", labelNames.get(i).note_id);
             label.put("label_id", labelNames.get(i).label_id);
             labelRef.document(String.valueOf(labelNames.get(i).label_id)).set(label);
         }
@@ -123,7 +122,6 @@ public class FirestoreHelper {
                 note.put("init_time", labelNames.get(i).init_time);
                 note.put("modify_time", labelNames.get(i).modify_time);
                 note.put("note_id", labelNames.get(i).note_id);
-                note.put("label_id", labelNames.get(i).label_id);
                 noteRef.document(String.valueOf(labelNames.get(i).note_id)).set(note);
             }
         }
@@ -193,14 +191,30 @@ public class FirestoreHelper {
         });
     }
 
-    public void deleteNote(String userId, String noteId, final FirestoreCallback callback) {
-        db.collection("users").document(userId).collection("notes").document(noteId)
-                .delete()
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
+//    public void deleteNote(String userId, String noteId, final FirestoreCallback callback) {
+//        db.collection("users").document(userId).collection("notes").document(noteId)
+//                .delete()
+//                .addOnCompleteListener(new OnCompleteListener<Void>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<Void> task) {
+//                        if (task.isSuccessful()) {
+//                            callback.onSuccess(null);
+//                        } else {
+//                            callback.onFailure(task.getException());
+//                        }
+//                    }
+//                });
+//    }
+
+    public void getNotes(String userId, final FirestoreCallback callback) {
+        db.collection("users").document(userId).collection("notes")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
-                    public void onComplete(@NonNull Task<Void> task) {
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            callback.onSuccess(null);
+                            callback.onSuccess(task.getResult());
                         } else {
                             callback.onFailure(task.getException());
                         }
@@ -208,9 +222,9 @@ public class FirestoreHelper {
                 });
     }
 
-    public void getNotes(String userId, final FirestoreCallback callback) {
-        db.collection("users").document(userId).collection("notes")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+    public void getLabels(String userId, final FirestoreCallback callback) {
+        db.collection("users").document(userId).collection("labels")
+                .orderBy("init_time", Query.Direction.ASCENDING)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
