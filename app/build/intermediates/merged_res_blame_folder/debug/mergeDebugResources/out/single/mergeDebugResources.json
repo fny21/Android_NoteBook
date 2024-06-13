@@ -1,0 +1,242 @@
+[
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_white_background.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/white_background.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_password_again.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/password_again.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_edit_picture.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/edit_picture.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_grey_tran.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/grey_tran.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_dot.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/dot.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_audio_play.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/audio_play.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_edit_note_audio.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/edit_note_audio.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-mdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_regester.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/regester.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_radio.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/radio.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_password.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/password.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_audio_background_orange.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/audio_background_orange.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_sign.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/sign.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/xml_backup_rules.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_background_tran.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/background_tran.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-hdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_edit_note_video.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/edit_note_video.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-xxxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_note_edit.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/note_edit.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_edit_audio.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/edit_audio.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/xml_data_extraction_rules.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_bigger.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/bigger.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_black_background.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/black_background.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_arrow_label_hide.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/arrow_label_hide.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_smaller.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/smaller.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_rubbish.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/rubbish.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_user.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/user.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_select_tran.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/select_tran.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_background_tran_light.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/background_tran_light.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-hdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_edit_back.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/edit_back.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_edit_note_text.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/edit_note_text.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_edit_note_picture.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/edit_note_picture.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_edit_one_note.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/edit_one_note.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-xxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_reges_or_log_in.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/reges_or_log_in.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_edit_video.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/edit_video.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_light_yellow_background.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/light_yellow_background.webp"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_search.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/search.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_label_layout.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/label_layout.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_audio_background_yellow.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/audio_background_yellow.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_arrow_label_show.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/arrow_label_show.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_edit_save.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/edit_save.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_ano_light_background.jpg.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/ano_light_background.jpg"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_stars.jpg.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/stars.jpg"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_activity_main.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/layout_log_in.xml.flat",
+        "source": "com.example.nootbook.app-main-41:/layout/log_in.xml"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_audio.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/audio.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_light_background.jpg.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/light_background.jpg"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_blue_add.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/blue_add.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_call_back.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/call_back.png"
+    },
+    {
+        "merged": "com.example.nootbook.app-debug-39:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.example.nootbook.app-main-41:/mipmap-xxxhdpi/ic_launcher_round.webp"
+    }
+]

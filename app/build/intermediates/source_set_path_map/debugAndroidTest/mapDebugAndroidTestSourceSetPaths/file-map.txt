@@ -1,0 +1,6 @@
+com.example.nootbook.test.app-annotation-experimental-1.3.0-0 C:\Users\c1123\.gradle\caches\transforms-3\1373e26beb494df0a4e51137ab7605bf\transformed\annotation-experimental-1.3.0\res
+com.example.nootbook.test.app-core-1.5.0-1 C:\Users\c1123\.gradle\caches\transforms-3\fcd7ce036c54caa4789fcf4d77e68b84\transformed\core-1.5.0\res
+com.example.nootbook.test.app-androidTest-2 C:\Users\c1123\Android_NoteBook\app\build\generated\res\resValues\androidTest\debug
+com.example.nootbook.test.app-mergeDebugAndroidTestResources-3 C:\Users\c1123\Android_NoteBook\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.example.nootbook.test.app-mergeDebugAndroidTestResources-4 C:\Users\c1123\Android_NoteBook\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.example.nootbook.test.app-debugAndroidTest-5 C:\Users\c1123\Android_NoteBook\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources

@@ -1,0 +1,3 @@
+com.example.nootbook.test
+style WhiteBackgroundDialogTheme
+style WhiteBackgroundTheme
