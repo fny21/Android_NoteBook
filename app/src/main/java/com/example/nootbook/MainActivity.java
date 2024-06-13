@@ -288,10 +288,17 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // 更新Firebase中的用户信息
-                updateUserProfile(user_name, new_header_image_path);
-                if (!new_pass_word.equals(pass_word)) {
-                    updateUserPassword(new_pass_word);
-                }
+                firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, new FirestoreHelper.FirestoreCallback() {
+                    @Override
+                    public void onSuccess(Object result) {
+                        Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Toast.makeText(MainActivity.this, "用户信息更新失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
@@ -369,34 +376,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateUserProfile(String displayName, String photoUri) {
-        authHelper.updateUserProfile(displayName, photoUri, new UserAuthHelper.AuthCallback() {
-            @Override
-            public void onSuccess(FirebaseUser user) {
-                Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(MainActivity.this, "用户信息更新失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void updateUserPassword(String newPassword) {
-        authHelper.updateUserPassword(newPassword, new UserAuthHelper.AuthCallback() {
-            @Override
-            public void onSuccess(FirebaseUser user) {
-                Toast.makeText(MainActivity.this, "密码修改成功", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(MainActivity.this, "密码修改失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
 
     void start_log_in_activity(){
         Intent intent = new Intent(this, RegesOrLogIn.class);
@@ -432,18 +411,6 @@ public class MainActivity extends AppCompatActivity {
         user_name = username;
         pass_word = password;
 
-
-
-//        label_names.add(new note_list_item(0, true, false, "You have not created a label, this label is really really long, long long long long long...", get_unique_label_index(), -1));
-//        label_names.add(new note_list_item(1, false, false, "1", -1, get_unique_note_index()));
-//        label_names.add(new note_list_item(1, false, false, "2", -1, get_unique_note_index()));
-//        label_names.add(new note_list_item(1, false, false, "3", -1, get_unique_note_index()));
-//        label_names.add(new note_list_item(0, false, false, "Again! You have not created a label, this label is really really long, long long long long long...", get_unique_label_index(), -1));
-//        label_names.add(new note_list_item(1, false, false, "4", -1, get_unique_note_index()));
-//        label_names.add(new note_list_item(1, false, false, "5", -1, get_unique_note_index()));
-//        label_names.add(new note_list_item(1, false, false, "6", -1, get_unique_note_index()));
-//        label_names.add(new note_list_item(1, false, false, "7", -1, get_unique_note_index()));
-//        label_names.add(new note_list_item(0, true, false, "Last! You have not created a label, this label is really really long, long long long long long...", get_unique_label_index(), -1));
         if(label_names.size()==0) {
             label_names.add(new note_list_item(0, true, false, "Unlabeled notes", get_unique_label_index(), -1));
             label_names.add(new note_list_item(0, true, false, "Recently Deleted", get_unique_label_index(), - 1));
@@ -523,6 +490,17 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         Log.e(String.valueOf(this), "unexpected prefix in show_or_hide: " + temp_item.name);
                     }
+                    firestoreHelper.updateNote(authHelper.getCurrentUser().getUid(), String.valueOf(temp_item.note_id), temp_item.toMap(), new FirestoreHelper.FirestoreCallback() {
+                        @Override
+                        public void onSuccess(Object result) {
+                            Log.d("FirestoreHelper", "Note updated successfully");
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            Log.e("FirestoreHelper", "Failed to update note: " + e.getMessage());
+                        }
+                    });
                 } else if (clicked_item == 2) {  // change name
                     note_list_item temp_item = list_for_adapter.get(position);
                     temp_item.name = new_name;
@@ -535,6 +513,17 @@ public class MainActivity extends AppCompatActivity {
                         label_names.set(position_in_label, temp_item);
                         list_for_adapter.set(position, temp_item);
                     }
+                    firestoreHelper.updateNote(authHelper.getCurrentUser().getUid(), String.valueOf(temp_item.note_id), temp_item.toMap(), new FirestoreHelper.FirestoreCallback() {
+                        @Override
+                        public void onSuccess(Object result) {
+                            Log.d("FirestoreHelper", "Note updated successfully");
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            Log.e("FirestoreHelper", "Failed to update note: " + e.getMessage());
+                        }
+                    });
                 } else if (clicked_item == 3) {  // "add_or_edit"
                     note_list_item temp_item = list_for_adapter.get(position);
                     if (temp_item.type == 1) {
@@ -553,10 +542,32 @@ public class MainActivity extends AppCompatActivity {
                             add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
                             int new_shown_item_number = 1 + adapter_hide_to_show(position + 2, index_in_label_names + 2);
                             change_map(position, new_shown_item_number, 1);
+                            firestoreHelper.addNote(authHelper.getCurrentUser().getUid(), String.valueOf(new_note_item.note_id), new_note_item.toMap(), new FirestoreHelper.FirestoreCallback() {
+                                @Override
+                                public void onSuccess(Object result) {
+                                    Log.d("FirestoreHelper", "Note added successfully");
+                                }
+
+                                @Override
+                                public void onFailure(Exception e) {
+                                    Log.e("FirestoreHelper", "Failed to add note: " + e.getMessage());
+                                }
+                            });
                         } else if (temp_item.type == 0 && !temp_item.is_hided) {
                             note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
                             add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
                             change_map(position, 1, 1);
+                            firestoreHelper.addNote(authHelper.getCurrentUser().getUid(), String.valueOf(new_note_item.note_id), new_note_item.toMap(), new FirestoreHelper.FirestoreCallback() {
+                                @Override
+                                public void onSuccess(Object result) {
+                                    Log.d("FirestoreHelper", "Note added successfully");
+                                }
+
+                                @Override
+                                public void onFailure(Exception e) {
+                                    Log.e("FirestoreHelper", "Failed to add note: " + e.getMessage());
+                                }
+                            });
                         } else {
                             Log.e(String.valueOf(this), "unexpected prefix in add_or_edit: " + temp_item.name);
                         }
@@ -568,6 +579,17 @@ public class MainActivity extends AppCompatActivity {
                             int position_in_label = locate_in_label_from_position_in_adapter(position);
                             delete_from_adapter_and_label(position, position_in_label);
                             change_map(position, -1, -1);
+                            firestoreHelper.deleteNote(authHelper.getCurrentUser().getUid(), String.valueOf(temp_item.note_id), new FirestoreHelper.FirestoreCallback() {
+                                @Override
+                                public void onSuccess(Object result) {
+                                    Log.d("FirestoreHelper", "Note deleted successfully");
+                                }
+
+                                @Override
+                                public void onFailure(Exception e) {
+                                    Log.e("FirestoreHelper", "Failed to delete note: " + e.getMessage());
+                                }
+                            });
                         } else {  // 移动到最近删除
                             move_note_to_recent_delete(position, temp_item);
                         }
@@ -621,11 +643,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, new FirestoreHelper.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(MainActivity.this, "用户信息更新失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         recyclerView.setAdapter(label_recycle_view_adapter);
         //设置分隔线
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         //设置增加或删除条目的动画
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+
     }
 
     private void loadUserNotes() {
@@ -633,17 +667,23 @@ public class MainActivity extends AppCompatActivity {
         firestoreHelper.getNotes(user_id, new FirestoreHelper.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
-                    note_list_item note_item = new note_list_item();
-                    QueryDocumentSnapshot document = (QueryDocumentSnapshot) result;
-                    note_item.name = document.getString("title");
-                    // TODO: edit_time
-//                    note_item.init_time = document.getDate("timestamp").toString();
-//                    note_item.modify_time = document.getDate("timestamp").toString();
-//                    note_item.type = document.getData("type");
-
-
+                if (result instanceof QuerySnapshot) {
+                    QuerySnapshot querySnapshot = (QuerySnapshot) result;
+                    label_names.clear(); // 清空旧的数据
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        note_list_item note_item = new note_list_item();
+                        note_item.note_id = document.getId().hashCode();
+                        note_item.name = document.getString("title");
+                        note_item.init_time = document.getDate("timestamp").toString();
+                        note_item.modify_time = document.getDate("timestamp").toString();
+                        note_item.type = 1;
+                        note_item.deleted = document.getBoolean("deleted") != null ? document.getBoolean("deleted") : false;
+                        label_names.add(note_item);
+                    }
+                    set_adapter_list_from_main_list(true);
+                } else {
+                    Toast.makeText(MainActivity.this, "Unexpected result type: " + result.getClass().getName(), Toast.LENGTH_SHORT).show();
                 }
-                set_adapter_list_from_main_list(true);
             }
 
             @Override
@@ -652,6 +692,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     void sort_label_names(int start_label_position, int sort_mode){
         int end_label_position = label_names.size();

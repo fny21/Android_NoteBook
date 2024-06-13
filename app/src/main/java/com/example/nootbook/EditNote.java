@@ -80,7 +80,9 @@ public class EditNote extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         Intent intent = getIntent();
-        note_id = intent.getStringExtra("note_id"); // 从Intent中获取笔记ID
+        note_id = "" + intent.getIntExtra("note_id", -1);
+        // log note_id:
+        Log.d("HL", "note_id: " + note_id);
         note_name = intent.getStringExtra("note_message");
 
         dp_to_px_ratio = getResources().getDisplayMetrics().density;
@@ -141,15 +143,9 @@ public class EditNote extends AppCompatActivity {
         //设置增加或删除条目的动画
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        // Load note details if note_id is provided
-        if (note_id != null && !note_id.isEmpty()) {
-            loadNoteDetails();
-        }
-    }
-
-    private void loadNoteDetails() {
+        // 从 Firestore 获取笔记内容并更新 UI
         String userId = authHelper.getCurrentUser().getUid();
-        firestoreHelper.getNoteDetail(userId, note_id, new FirestoreCallback() {
+        firestoreHelper.getNoteDetail(userId, note_id, new FirestoreHelper.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
                 DocumentSnapshot document = (DocumentSnapshot) result;
@@ -157,41 +153,47 @@ public class EditNote extends AppCompatActivity {
                     note_name = document.getString("title");
                     edit_note_title.setText(note_name);
 
+                    // 检查 items 是否为空
                     List<Map<String, Object>> items = (List<Map<String, Object>>) document.get("items");
-                    for (Map<String, Object> item : items) {
-                        int type = ((Long) item.get("type")).intValue();
-                        edit_note_item noteItem = new edit_note_item(type);
-                        noteItem.position = ((Long) item.get("position")).intValue();
+                    if (items != null) {
+                        for (Map<String, Object> item : items) {
+                            int type = ((Long) item.get("type")).intValue();
+                            edit_note_item noteItem = new edit_note_item(type);
+                            noteItem.position = ((Long) item.get("position")).intValue();
 
-                        switch (type) {
-                            case 0: // Text
-                                noteItem.edit_text_string = (String) item.get("edit_text_string");
-                                noteItem.edit_text_line_num = ((Long) item.get("edit_text_line_num")).intValue();
-                                break;
-                            case 1: // Image
-                                noteItem.image_path = (String) item.get("image_path");
-                                noteItem.image_show = (Boolean) item.get("image_show");
-                                noteItem.image_edit_show = (Boolean) item.get("image_edit_show");
-                                noteItem.image_width = ((Long) item.get("image_width")).intValue();
-                                if (noteItem.image_path != null && !noteItem.image_path.isEmpty()) {
-                                    noteItem.image_bitmap = BitmapFactory.decodeFile(noteItem.image_path);
-                                }
-                                break;
-                            case 2: // Audio
-                                noteItem.audio_show = (Boolean) item.get("audio_show");
-                                noteItem.audio_edit_show = (Boolean) item.get("audio_edit_show");
-                                List<Long> audioByteList = (List<Long>) item.get("audio_byte");
-                                noteItem.audio_byte = new byte[audioByteList.size()];
-                                for (int i = 0; i < audioByteList.size(); i++) {
-                                    noteItem.audio_byte[i] = audioByteList.get(i).byteValue();
-                                }
-                                noteItem.audio_output_file_path = (String) item.get("audio_output_file_path");
-                                break;
-                            case 3: // Video
-                                break;
+                            switch (type) {
+                                case 0: // Text
+                                    noteItem.edit_text_string = (String) item.get("edit_text_string");
+                                    noteItem.edit_text_line_num = ((Long) item.get("edit_text_line_num")).intValue();
+                                    break;
+                                case 1: // Image
+                                    noteItem.image_path = (String) item.get("image_path");
+                                    noteItem.image_show = (Boolean) item.get("image_show");
+                                    noteItem.image_edit_show = (Boolean) item.get("image_edit_show");
+                                    noteItem.image_width = ((Long) item.get("image_width")).intValue();
+                                    if (noteItem.image_path != null && !noteItem.image_path.isEmpty()) {
+                                        noteItem.image_bitmap = BitmapFactory.decodeFile(noteItem.image_path);
+                                    }
+                                    break;
+                                case 2: // Audio
+                                    noteItem.audio_show = (Boolean) item.get("audio_show");
+                                    noteItem.audio_edit_show = (Boolean) item.get("audio_edit_show");
+                                    List<Long> audioByteList = (List<Long>) item.get("audio_byte");
+                                    if (audioByteList != null) {
+                                        noteItem.audio_byte = new byte[audioByteList.size()];
+                                        for (int i = 0; i < audioByteList.size(); i++) {
+                                            noteItem.audio_byte[i] = audioByteList.get(i).byteValue();
+                                        }
+                                    }
+                                    noteItem.audio_output_file_path = (String) item.get("audio_output_file_path");
+                                    break;
+                                case 3: // Video
+                                    // 处理视频相关数据
+                                    break;
+                            }
+
+                            item_list_for_adapter.add(noteItem);
                         }
-
-                        item_list_for_adapter.add(noteItem);
                     }
                     edit_note_label_recycle_view_adapter.notifyDataSetChanged();
                 }
@@ -202,9 +204,10 @@ public class EditNote extends AppCompatActivity {
                 Toast.makeText(EditNote.this, "加载笔记失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
     }
 
-    void save_clicked(){
+    void save_clicked() {
         show_message("edit title: save clicked");
         edit_note_label_recycle_view_adapter.delete_null_edit_text();
 
@@ -212,7 +215,10 @@ public class EditNote extends AppCompatActivity {
         String userId = authHelper.getCurrentUser().getUid();
         Map<String, Object> note = new HashMap<>();
         note.put("title", note_name);
-        for(int i=0; i<item_list_for_adapter.size(); i++){
+        note.put("timestamp", com.google.firebase.Timestamp.now());
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (int i = 0; i < item_list_for_adapter.size(); i++) {
             edit_note_item one_item = item_list_for_adapter.get(i);
             Map<String, Object> item = new HashMap<>();
             item.put("type", one_item.type);
@@ -239,13 +245,14 @@ public class EditNote extends AppCompatActivity {
                     item.put("audio_output_file_path", one_item.audio_output_file_path);
                     break;
                 case 3: // Video
+                    // 视频处理逻辑（假设视频不需要存储特定字段）
                     break;
             }
-            note.put("item" + i, item);
+            items.add(item);
         }
+        note.put("items", items);
 
         if (note_id == null || note_id.isEmpty()) {
-            note_id = db.collection("users").document(userId).collection("notes").document().getId(); // Generate a new ID for the note
             firestoreHelper.addNote(userId, note_id, note, new FirestoreHelper.FirestoreCallback() {
                 @Override
                 public void onSuccess(Object result) {
@@ -273,6 +280,7 @@ public class EditNote extends AppCompatActivity {
             });
         }
     }
+
 
 
     void back_clicked(){

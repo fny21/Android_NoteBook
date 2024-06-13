@@ -18,9 +18,11 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-class note_list_item{
+class note_list_item {
     int label_id;
     int note_id;
     int type;  // 0 for label, 1 for note
@@ -30,11 +32,7 @@ class note_list_item{
     String init_time;  // 创建时间
     String modify_time;  // 最近修改时间
 
-    boolean search_aim = false;
-    String search_string;
-
-    note_list_item()
-    {
+    note_list_item() {
         type = 0;
         is_hided = false;
         deleted = false;
@@ -43,7 +41,7 @@ class note_list_item{
         note_id = -1;
     }
 
-    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_){
+    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_) {
         type = type_;
         is_hided = is_hided_;
         deleted = deleted_;
@@ -55,7 +53,21 @@ class note_list_item{
         init_time = currentDate.toString();
         modify_time = currentDate.toString();
     }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("label_id", label_id);
+        map.put("note_id", note_id);
+        map.put("type", type);
+        map.put("is_hided", is_hided);
+        map.put("deleted", deleted);
+        map.put("name", name);
+        map.put("init_time", init_time);
+        map.put("modify_time", modify_time);
+        return map;
+    }
 }
+
 
 public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleViewAdapter.labelViewHolder> {
     private Context context;
@@ -79,8 +91,6 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
     class labelViewHolder extends RecyclerView.ViewHolder {
         private ImageButton label_show_or_hide;
         private EditText label_name;
-
-        private TextView label_name_searching_selected;
         private ImageButton label_add_note;
         private ImageButton label_delete_all;
 
@@ -90,7 +100,6 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             label_add_note = itemView.findViewById(R.id.one_label_add_button);
             label_delete_all = itemView.findViewById(R.id.one_label_delete_all);
             label_show_or_hide = itemView.findViewById(R.id.label_hide_or_show);
-            label_name_searching_selected = itemView.findViewById(R.id.one_label_searching_aim_aim);
         }
     }
 
@@ -212,23 +221,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
         else{
             Log.e(String.valueOf(this), "unexpected string: string should begin with 'label' or 'note'");
         }
-        if(MainActivity.searching && one_item.type==1 && one_item.search_aim) {
-            holder.label_name.setText(one_item.name);
-            holder.label_name.setVisibility(View.INVISIBLE);
-            holder.label_name_searching_selected.setVisibility(View.VISIBLE);
-            String temp_string = one_item.name+"..."+one_item.search_string;
-            holder.label_name_searching_selected.setText(temp_string);
-            holder.label_name_searching_selected.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-            holder.label_name_searching_selected.setMarqueeRepeatLimit(-1); // -1 表示无限重复
-            holder.label_name_searching_selected.setFocusable(true);
-            holder.label_name_searching_selected.setFocusableInTouchMode(true);
-            holder.label_name_searching_selected.setSelected(true);
-        }
-        else{
-            holder.label_name.setText(one_item.name);
-            holder.label_name.setVisibility(View.VISIBLE);
-            holder.label_name_searching_selected.setVisibility(View.INVISIBLE);
-        }
+        holder.label_name.setText(one_item.name);
         /*
         holder.label_name.setEllipsize(TextUtils.TruncateAt.MARQUEE);
         holder.label_name.setMarqueeRepeatLimit(-1); // -1 表示无限重复

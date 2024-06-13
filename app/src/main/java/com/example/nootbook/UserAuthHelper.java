@@ -1,5 +1,6 @@
 package com.example.nootbook;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -9,6 +10,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.OnCompleteListener;
 import androidx.annotation.NonNull;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UserAuthHelper {
 
@@ -63,45 +70,6 @@ public class UserAuthHelper {
                         }
                     }
                 });
-    }
-
-    public void updateUserProfile(String displayName, String photoUri, final AuthCallback callback) {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                    .setDisplayName(displayName)
-                    .setPhotoUri(photoUri != null ? Uri.parse(photoUri) : null)
-                    .build();
-
-            user.updateProfile(profileUpdates)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                callback.onSuccess(user);
-                            } else {
-                                callback.onFailure(task.getException());
-                            }
-                        }
-                    });
-        }
-    }
-
-    public void updateUserPassword(String newPassword, final AuthCallback callback) {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            user.updatePassword(newPassword)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                callback.onSuccess(user);
-                            } else {
-                                callback.onFailure(task.getException());
-                            }
-                        }
-                    });
-        }
     }
 
     public interface AuthCallback {
