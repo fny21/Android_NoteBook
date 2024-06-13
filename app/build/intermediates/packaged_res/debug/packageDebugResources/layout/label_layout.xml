@@ -32,6 +32,27 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
+    <TextView
+        android:id="@+id/one_label_searching_aim_aim"
+        android:layout_width="210dp"
+        android:layout_height="30dp"
+        android:inputType="text"
+        android:textSize="16sp"
+        android:background="@null"
+        android:gravity="start|top"
+        android:visibility="invisible"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:scrollHorizontally="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/one_label_add_button"
+        app:layout_constraintStart_toEndOf="@id/label_hide_or_show"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
     <ImageButton
         android:id="@+id/one_label_add_button"
         android:layout_width="25dp"

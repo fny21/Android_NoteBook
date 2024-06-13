@@ -257,7 +257,6 @@ public class EditNote extends AppCompatActivity {
                 @Override
                 public void onSuccess(Object result) {
                     show_message("笔记已保存");
-                    finish();
                 }
 
                 @Override
@@ -270,7 +269,6 @@ public class EditNote extends AppCompatActivity {
                 @Override
                 public void onSuccess(Object result) {
                     show_message("笔记已更新");
-                    finish();
                 }
 
                 @Override

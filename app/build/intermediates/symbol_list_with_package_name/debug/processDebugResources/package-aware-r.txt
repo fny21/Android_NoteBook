@@ -3301,6 +3301,7 @@ id edit_one_note_image_smaller
 id edit_one_note_image_total_box
 id edit_one_note_image_view
 id edit_one_note_item_list
+id edit_one_note_large_model_text
 id edit_one_note_shoot_image
 id edit_one_note_title
 id edit_one_note_upload_audio
@@ -3479,6 +3480,7 @@ id onInterceptTouchReturnSwipe
 id one_label_add_button
 id one_label_delete_all
 id one_label_name
+id one_label_searching_aim_aim
 id outline
 id outward
 id overshoot
@@ -3811,6 +3813,7 @@ layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout edit_note_audio
+layout edit_note_large_model_text
 layout edit_note_picture
 layout edit_note_text
 layout edit_note_video

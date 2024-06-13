@@ -3300,6 +3300,7 @@ int id edit_one_note_image_smaller 0x7f0800d6
 int id edit_one_note_image_total_box 0x7f0800d7
 int id edit_one_note_image_view 0x7f0800d8
 int id edit_one_note_item_list 0x7f0800d9
+int id edit_one_note_large_model_text 0x7f080252
 int id edit_one_note_shoot_image 0x7f0800da
 int id edit_one_note_title 0x7f0800db
 int id edit_one_note_upload_audio 0x7f0800dc
@@ -3478,6 +3479,7 @@ int id onInterceptTouchReturnSwipe 0x7f080188
 int id one_label_add_button 0x7f080189
 int id one_label_delete_all 0x7f08018a
 int id one_label_name 0x7f08018b
+int id one_label_searching_aim_aim 0x7f080253
 int id outline 0x7f08018c
 int id outward 0x7f08018d
 int id overshoot 0x7f08018e
@@ -3810,6 +3812,7 @@ int layout design_navigation_menu_item 0x7f0b002c
 int layout design_text_input_end_icon 0x7f0b002d
 int layout design_text_input_start_icon 0x7f0b002e
 int layout edit_note_audio 0x7f0b002f
+int layout edit_note_large_model_text 0x7f0b0075
 int layout edit_note_picture 0x7f0b0030
 int layout edit_note_text 0x7f0b0031
 int layout edit_note_video 0x7f0b0032

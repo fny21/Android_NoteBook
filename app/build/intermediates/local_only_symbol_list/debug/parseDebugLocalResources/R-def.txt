@@ -77,6 +77,7 @@ id edit_one_note_image_smaller
 id edit_one_note_image_total_box
 id edit_one_note_image_view
 id edit_one_note_item_list
+id edit_one_note_large_model_text
 id edit_one_note_shoot_image
 id edit_one_note_title
 id edit_one_note_upload_audio
@@ -105,6 +106,7 @@ id note_list_setting
 id one_label_add_button
 id one_label_delete_all
 id one_label_name
+id one_label_searching_aim_aim
 id regester_button
 id regester_first_line
 id regester_first_line_user_image
@@ -130,6 +132,7 @@ id view_pager
 id welcome_text
 layout activity_main
 layout edit_note_audio
+layout edit_note_large_model_text
 layout edit_note_picture
 layout edit_note_text
 layout edit_note_video
