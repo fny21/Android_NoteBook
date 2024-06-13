@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class FirestoreHelper {
 
@@ -54,12 +55,13 @@ public class FirestoreHelper {
                 });
     }
 
-    public void updateUserDetails(String userId, String userSign, String userName, String password, int labelUniqueIndex, int noteUniqueIndex, Bitmap headerImageBitmap, List<note_list_item> labelNames, final FirestoreCallback callback) {
+    public void updateUserDetails(String userId, String userSign, String userName, String password, int labelUniqueIndex, int noteUniqueIndex, Bitmap headerImageBitmap, List<note_list_item> labelNames, TreeMap<Integer, Integer> deleted_note_to_label_map, final FirestoreCallback callback) {
         Map<String, Object> user = new HashMap<>();
         user.put("username", userName);
         user.put("signature", userSign);
         user.put("labelUniqueIndex", labelUniqueIndex);
         user.put("noteUniqueIndex", noteUniqueIndex);
+        user.put("deleted_note_to_label_map", deleted_note_to_label_map);
 
         db.collection("users").document(userId)
                 .set(user)
@@ -125,6 +127,15 @@ public class FirestoreHelper {
                 noteRef.document(String.valueOf(labelNames.get(i).note_id)).set(note);
             }
         }
+
+        // 更新笔记与标签的映射
+        CollectionReference NoteToLabelRef = db.collection("users").document(userId).collection("deleted_note_to_label");
+        for (Map.Entry<Integer, Integer> entry : deleted_note_to_label_map.entrySet()) {
+            Map<String, Object> NoteToLabel = new HashMap<>();
+            NoteToLabel.put("note_id", entry.getKey());
+            NoteToLabel.put("label_id", entry.getValue());
+            NoteToLabelRef.document(String.valueOf(entry.getKey())).set(NoteToLabel);
+        }
     }
 
     public void addNote(String userId, String noteId, Map<String, Object> note, final FirestoreCallback callback) {
@@ -161,7 +172,6 @@ public class FirestoreHelper {
 
     public void updateNote(String userId, String noteId, Map<String, Object> note, final FirestoreCallback callback) {
         DocumentReference noteRef = db.collection("users").document(userId).collection("notes").document(noteId);
-
         noteRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -191,21 +201,6 @@ public class FirestoreHelper {
         });
     }
 
-//    public void deleteNote(String userId, String noteId, final FirestoreCallback callback) {
-//        db.collection("users").document(userId).collection("notes").document(noteId)
-//                .delete()
-//                .addOnCompleteListener(new OnCompleteListener<Void>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<Void> task) {
-//                        if (task.isSuccessful()) {
-//                            callback.onSuccess(null);
-//                        } else {
-//                            callback.onFailure(task.getException());
-//                        }
-//                    }
-//                });
-//    }
-
     public void getNotes(String userId, final FirestoreCallback callback) {
         db.collection("users").document(userId).collection("notes")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -215,6 +210,55 @@ public class FirestoreHelper {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             callback.onSuccess(task.getResult());
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+    }
+
+    public void deleteNote(String userId, String noteId, final FirestoreCallback callback) {
+        DocumentReference noteRef = db.collection("users").document(userId).collection("notes").document(noteId);
+        // set note deleted = true
+        noteRef.update("deleted", true)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(null);
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+
+    }
+
+    public void undeleteNote(String userId, String noteId, final FirestoreCallback callback) {
+        DocumentReference noteRef = db.collection("users").document(userId).collection("notes").document(noteId);
+        // set note deleted = false
+        noteRef.update("deleted", false)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(null);
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+
+    }
+
+    public void comlpeteDeleteNote(String userId, int noteId, final FirestoreCallback callback) {
+        db.collection("users").document(userId).collection("deleted_note_to_label").document(String.valueOf(noteId))
+                .delete()
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(null);
                         } else {
                             callback.onFailure(task.getException());
                         }
@@ -244,6 +288,22 @@ public class FirestoreHelper {
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(task.getResult());
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+    }
+
+    public void getDeletedNoteToLabel(String userId, final FirestoreCallback callback) {
+        db.collection("users").document(userId).collection("deleted_note_to_label")
+                .orderBy("note_id", Query.Direction.ASCENDING)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             callback.onSuccess(task.getResult());
                         } else {

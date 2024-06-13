@@ -4,7 +4,7 @@
             "outputFile": "com.example.nootbook.app-mergeDebugResources-37:/values-v17/values-v17.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\c1123\\.gradle\\caches\\transforms-4\\1a9a5515ae03d475a6c9ca92cec8c481\\transformed\\appcompat-1.6.1\\res\\values-v17\\values-v17.xml",
+                    "source": "C:\\Users\\c1123\\.gradle\\caches\\transforms-4\\54351c80ec3cc030290e4cc0695d2524\\transformed\\appcompat-1.6.1\\res\\values-v17\\values-v17.xml",
                     "from": {
                         "startLines": "2,5,9,12,15,18,22,25,29,33,37,40,43,46,50,53,57",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",

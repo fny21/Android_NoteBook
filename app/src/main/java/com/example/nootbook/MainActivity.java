@@ -37,6 +37,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -46,8 +47,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
@@ -209,6 +212,17 @@ public class MainActivity extends AppCompatActivity {
             add_in_label_and_adapter(0, 0, new_note_item);
             change_map(-1, 1, 1);
             put_new_adapter_label_map(0, 0);
+            firestoreHelper.addLabel(authHelper.getCurrentUser().getUid(), String.valueOf(new_note_item.label_id), new_note_item.toMap(), new FirestoreHelper.FirestoreCallback() {
+                @Override
+                public void onSuccess(Object result) {
+                    Log.d("FirestoreHelper", "Label added successfully");
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    Log.e("FirestoreHelper", "Failed to add label: " + e.getMessage());
+                }
+            });
         });
 
         setting_search_button.setOnClickListener(v -> {
@@ -268,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // 更新Firebase中的用户信息
-                firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, new FirestoreHelper.FirestoreCallback() {
+                firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, deleted_note_to_label_map, new FirestoreHelper.FirestoreCallback() {
                     @Override
                     public void onSuccess(Object result) {
                         Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
@@ -504,32 +518,10 @@ public class MainActivity extends AppCompatActivity {
                                             add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
                                             int new_shown_item_number = 1 + adapter_hide_to_show(position + 2, index_in_label_names + 2);
                                             change_map(position, new_shown_item_number, 1);
-                                            firestoreHelper.addNote(authHelper.getCurrentUser().getUid(), String.valueOf(new_note_item.note_id), new_note_item.toMap(), new FirestoreHelper.FirestoreCallback() {
-                                                @Override
-                                                public void onSuccess(Object result) {
-                                                    Log.d("FirestoreHelper", "Note added successfully");
-                                                }
-
-                                                @Override
-                                                public void onFailure(Exception e) {
-                                                    Log.e("FirestoreHelper", "Failed to add note: " + e.getMessage());
-                                                }
-                                            });
                                         } else if (temp_item.type == 0 && !temp_item.is_hided) {
                                             note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
                                             add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
                                             change_map(position, 1, 1);
-                                            firestoreHelper.addNote(authHelper.getCurrentUser().getUid(), String.valueOf(new_note_item.note_id), new_note_item.toMap(), new FirestoreHelper.FirestoreCallback() {
-                                                @Override
-                                                public void onSuccess(Object result) {
-                                                    Log.d("FirestoreHelper", "Note added successfully");
-                                                }
-
-                                                @Override
-                                                public void onFailure(Exception e) {
-                                                    Log.e("FirestoreHelper", "Failed to add note: " + e.getMessage());
-                                                }
-                                            });
                                         } else {
                                             Log.e(String.valueOf(this), "unexpected prefix in add_or_edit: " + temp_item.name);
                                         }
@@ -541,8 +533,26 @@ public class MainActivity extends AppCompatActivity {
                                             int position_in_label = locate_in_label_from_position_in_adapter(position);
                                             delete_from_adapter_and_label(position, position_in_label);
                                             change_map(position, -1, -1);
+                                            firestoreHelper.comlpeteDeleteNote(authHelper.getCurrentUser().getUid(), temp_item.note_id, new FirestoreHelper.FirestoreCallback() {
+                                                @Override
+                                                public void onSuccess(Object result) {
+                                                }
+
+                                                @Override
+                                                public void onFailure(Exception e) {
+                                                }
+                                            });
                                         } else {  // 移动到最近删除
                                             move_note_to_recent_delete(position, temp_item);
+                                            firestoreHelper.deleteNote(authHelper.getCurrentUser().getUid(), String.valueOf(temp_item.note_id), new FirestoreHelper.FirestoreCallback() {
+                                                @Override
+                                                public void onSuccess(Object result) {
+                                                }
+
+                                                @Override
+                                                public void onFailure(Exception e) {
+                                                }
+                                            });
                                         }
                                     } else if (temp_item.type == 0) {
                                         if (temp_item.name.startsWith("Recently Deleted")) {  // 清空最近删除
@@ -560,6 +570,16 @@ public class MainActivity extends AppCompatActivity {
                                             // 删除所有笔记
                                             for (int i = index_in_label_names + 1; i < label_names.size(); i++) {
                                                 delete_from_adapter_and_label(position + i - index_in_label_names, i);
+
+                                                firestoreHelper.deleteNote(authHelper.getCurrentUser().getUid(), String.valueOf(label_names.get(i).note_id), new FirestoreHelper.FirestoreCallback() {
+                                                    @Override
+                                                    public void onSuccess(Object result) {
+                                                    }
+
+                                                    @Override
+                                                    public void onFailure(Exception e) {
+                                                    }
+                                                });
                                             }
                                             change_map(position + 1, index_in_label_names + 1 - label_names.size());
 
@@ -599,8 +619,10 @@ public class MainActivity extends AppCompatActivity {
                         recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this, DividerItemDecoration.VERTICAL));
                         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
+                        deleteNoteUpdate();
+
                         // 更新用户信息
-                        firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, new FirestoreHelper.FirestoreCallback() {
+                        firestoreHelper.updateUserDetails(authHelper.getCurrentUser().getUid(), user_sign, user_name, pass_word, label_unique_index, note_unique_index, header_image_bitmap, label_names, deleted_note_to_label_map, new FirestoreHelper.FirestoreCallback() {
                             @Override
                             public void onSuccess(Object result) {
                                 Toast.makeText(MainActivity.this, "用户信息更新成功", Toast.LENGTH_SHORT).show();
@@ -628,6 +650,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void deleteNoteUpdate() {
+        // load deletedNoteToLabelRef
+        firestoreHelper.getDeletedNoteToLabel(authHelper.getCurrentUser().getUid(), new FirestoreHelper.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                if (result instanceof QuerySnapshot) {
+                    QuerySnapshot querySnapshot = (QuerySnapshot) result;
+                    deleted_note_to_label_map.clear();
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        int noteId = document.getId().hashCode();
+                        int labelId = document.getLong("labelId").intValue();
+                        deleted_note_to_label_map.put(noteId, labelId);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(MainActivity.this, "加载已删除笔记失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     private void loadUserNotes(final FirestoreHelper.FirestoreCallback callback) {
         String user_id = authHelper.getCurrentUser().getUid();
@@ -643,7 +687,7 @@ public class MainActivity extends AppCompatActivity {
                         note_item.init_time = document.getTimestamp("timestamp").toDate().toString();
                         note_item.modify_time = document.getTimestamp("timestamp").toDate().toString();
                         note_item.type = 1;
-                        note_item.deleted = document.getBoolean("deleted");
+                        note_item.deleted = document.getBoolean("deleted") == null ?  false : document.getBoolean("deleted");
                         label_names.add(note_item);
                     }
                     callback.onSuccess(null);
@@ -671,8 +715,10 @@ public class MainActivity extends AppCompatActivity {
                         label_item.label_id = document.getId().hashCode();
                         label_item.name = document.getString("name");
                         label_item.is_hided = document.getBoolean("is_hided");
-                        label_item.init_time = document.getDate("init_time").toString();
-                        label_item.modify_time = document.getDate("modify_time").toString();
+
+                        label_item.init_time = document.getString("init_time");
+                        label_item.modify_time = document.getString("modify_time");
+
                         label_item.type = 0;
                         label_names.add(label_item);
                     }
@@ -688,6 +734,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
 
