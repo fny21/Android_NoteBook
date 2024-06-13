@@ -421,7 +421,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
         if(viewType==1){  // 图片
             RecyclerView.LayoutParams edit_note_image_total_box_layout_param = (RecyclerView.LayoutParams) holder.edit_note_image_total_box.getLayoutParams();
             edit_note_image_total_box_layout_param.height = 0;
-            if(aim_edit_note_item.image_show){
+            if(aim_edit_note_item.image_show && aim_edit_note_item.image_bitmap!=null){
                 holder.edit_note_image_view.setVisibility(View.VISIBLE);
                 int image_width=aim_edit_note_item.image_bitmap.getWidth();
                 int image_height=aim_edit_note_item.image_bitmap.getHeight();
