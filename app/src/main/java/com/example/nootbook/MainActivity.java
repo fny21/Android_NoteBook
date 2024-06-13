@@ -292,8 +292,7 @@ public class MainActivity extends AppCompatActivity {
             applyPermission(2);
         });
 
-        // 从数据库中获取数据
-        startLogInActivityForResult.launch(new Intent(this, RegesOrLogIn.class));
+//        startLogInActivityForResult.launch(new Intent(this, RegesOrLogIn.class));
     }
 
     void set_adapter_list_from_main_list(boolean notify_change){
@@ -551,17 +550,6 @@ public class MainActivity extends AppCompatActivity {
                                     int position_in_label = locate_in_label_from_position_in_adapter(position);
                                     delete_from_adapter_and_label(position, position_in_label);
                                     change_map(position, -1, -1);
-                                    firestoreHelper.deleteNote(authHelper.getCurrentUser().getUid(), String.valueOf(temp_item.note_id), new FirestoreHelper.FirestoreCallback() {
-                                        @Override
-                                        public void onSuccess(Object result) {
-                                            Log.d("FirestoreHelper", "Note deleted successfully");
-                                        }
-
-                                        @Override
-                                        public void onFailure(Exception e) {
-                                            Log.e("FirestoreHelper", "Failed to delete note: " + e.getMessage());
-                                        }
-                                    });
                                 } else {  // 移动到最近删除
                                     move_note_to_recent_delete(position, temp_item);
                                 }
@@ -655,7 +643,7 @@ public class MainActivity extends AppCompatActivity {
                         note_item.name = document.getString("title");
                         note_item.init_time = document.getTimestamp("timestamp").toDate().toString();
                         note_item.modify_time = document.getTimestamp("timestamp").toDate().toString();
-                        note_item.type = 1;
+                        note_item.type = document.getLong("type") != null ? document.getLong("type").intValue() : 1;
                         note_item.deleted = document.getBoolean("deleted") != null ? document.getBoolean("deleted") : false;
                         label_names.add(note_item);
                     }

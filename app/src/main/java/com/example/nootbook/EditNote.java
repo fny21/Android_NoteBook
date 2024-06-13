@@ -189,6 +189,10 @@ public class EditNote extends AppCompatActivity {
                                     break;
                                 case 3: // Video
                                     // 处理视频相关数据
+                                    noteItem.video_show = true;
+                                    noteItem.video_edit_show = true;
+                                    noteItem.video_uri = Uri.parse((String) item.get("video_uri"));
+                                    noteItem.video_width = ((Long) item.get("video_width")).intValue();
                                     break;
                             }
 
@@ -246,6 +250,8 @@ public class EditNote extends AppCompatActivity {
                     break;
                 case 3: // Video
                     // 视频处理逻辑（假设视频不需要存储特定字段）
+                    item.put("video_uri", one_item.video_uri.toString());
+                    item.put("video_width", one_item.video_width);
                     break;
             }
             items.add(item);
