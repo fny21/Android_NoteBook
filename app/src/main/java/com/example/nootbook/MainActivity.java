@@ -100,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
 
     int editing_position;
 
+    public static boolean searching = false;
+
     private UserAuthHelper authHelper;
     private FirestoreHelper firestoreHelper;
 
@@ -215,6 +217,24 @@ public class MainActivity extends AppCompatActivity {
             String search_string = setting_search_content.getText().toString();
             show_error("search: "+search_string);
             // TODO: finish search
+            if(search_string.length()==0) {
+                this.searching = false;
+                for(int i=0; i<label_names.size(); i++){
+                    note_list_item temp_note_item = label_names.get(i);
+                    if(temp_note_item.type==0){
+                        sort_label_names(i, setting_sort_spinner.getSelectedItemPosition());
+                    }
+                }
+            }
+            else {
+                this.searching = true;
+                for(int i=0; i<label_names.size(); i++){
+                    note_list_item temp_note_item = label_names.get(i);
+                    if(temp_note_item.type==0){
+                        sort_label_names(i, 3);
+                    }
+                }
+            }
         });
 
         user_info_layout.setOnClickListener(new View.OnClickListener() {
@@ -661,8 +681,13 @@ public class MainActivity extends AppCompatActivity {
                             need_swap=true;
                         }
                     }
-                    else{  // 修改
+                    else if(sort_mode==2){  // 修改
                         if(temp_item_1.modify_time.compareTo(temp_item_2.modify_time)<0){
+                            need_swap=true;
+                        }
+                    }
+                    else {
+                        if(!temp_item_1.search_aim && temp_item_2.search_aim) {
                             need_swap=true;
                         }
                     }

@@ -30,6 +30,9 @@ class note_list_item{
     String init_time;  // 创建时间
     String modify_time;  // 最近修改时间
 
+    boolean search_aim = false;
+    String search_string;
+
     note_list_item()
     {
         type = 0;
@@ -76,6 +79,8 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
     class labelViewHolder extends RecyclerView.ViewHolder {
         private ImageButton label_show_or_hide;
         private EditText label_name;
+
+        private TextView label_name_searching_selected;
         private ImageButton label_add_note;
         private ImageButton label_delete_all;
 
@@ -85,6 +90,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             label_add_note = itemView.findViewById(R.id.one_label_add_button);
             label_delete_all = itemView.findViewById(R.id.one_label_delete_all);
             label_show_or_hide = itemView.findViewById(R.id.label_hide_or_show);
+            label_name_searching_selected = itemView.findViewById(R.id.one_label_searching_aim_aim);
         }
     }
 
@@ -206,7 +212,23 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
         else{
             Log.e(String.valueOf(this), "unexpected string: string should begin with 'label' or 'note'");
         }
-        holder.label_name.setText(one_item.name);
+        if(MainActivity.searching && one_item.type==1 && one_item.search_aim) {
+            holder.label_name.setText(one_item.name);
+            holder.label_name.setVisibility(View.INVISIBLE);
+            holder.label_name_searching_selected.setVisibility(View.VISIBLE);
+            String temp_string = one_item.name+"..."+one_item.search_string;
+            holder.label_name_searching_selected.setText(temp_string);
+            holder.label_name_searching_selected.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            holder.label_name_searching_selected.setMarqueeRepeatLimit(-1); // -1 表示无限重复
+            holder.label_name_searching_selected.setFocusable(true);
+            holder.label_name_searching_selected.setFocusableInTouchMode(true);
+            holder.label_name_searching_selected.setSelected(true);
+        }
+        else{
+            holder.label_name.setText(one_item.name);
+            holder.label_name.setVisibility(View.VISIBLE);
+            holder.label_name_searching_selected.setVisibility(View.INVISIBLE);
+        }
         /*
         holder.label_name.setEllipsize(TextUtils.TruncateAt.MARQUEE);
         holder.label_name.setMarqueeRepeatLimit(-1); // -1 表示无限重复
