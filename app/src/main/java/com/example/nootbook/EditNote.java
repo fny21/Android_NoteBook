@@ -33,7 +33,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -129,10 +131,6 @@ public class EditNote extends AppCompatActivity {
         layoutManager.setOrientation(RecyclerView.VERTICAL);
 
         item_list_for_adapter = new ArrayList<>();
-        edit_note_item new_text_item = new edit_note_item(0);
-        new_text_item.edit_text_string = "";
-        new_text_item.position = 0;
-        item_list_for_adapter.add(new_text_item);
 
         //设置Adapter
         edit_note_label_recycle_view_adapter = new EditNoteLabelRecycleViewAdapter(this, item_list_for_adapter, this.dp_to_px_ratio);
@@ -169,9 +167,6 @@ public class EditNote extends AppCompatActivity {
                                     noteItem.image_show = (Boolean) item.get("image_show");
                                     noteItem.image_edit_show = (Boolean) item.get("image_edit_show");
                                     noteItem.image_width = ((Long) item.get("image_width")).intValue();
-                                    if (noteItem.image_path != null && !noteItem.image_path.isEmpty()) {
-                                        noteItem.image_bitmap = BitmapFactory.decodeFile(noteItem.image_path);
-                                    }
                                     break;
                                 case 2: // Audio
                                     noteItem.audio_show = (Boolean) item.get("audio_show");
@@ -196,6 +191,12 @@ public class EditNote extends AppCompatActivity {
 
                             item_list_for_adapter.add(noteItem);
                         }
+                    }
+                    if(item_list_for_adapter.size()==0) {
+                        edit_note_item new_text_item = new edit_note_item(0);
+                        new_text_item.edit_text_string = "";
+                        new_text_item.position = 0;
+                        item_list_for_adapter.add(new_text_item);
                     }
                     edit_note_label_recycle_view_adapter.notifyDataSetChanged();
                 }
@@ -286,6 +287,21 @@ public class EditNote extends AppCompatActivity {
 
 
     void back_clicked(){
+        // TODO: 调用大模型生成摘要，前端仅需要正确得到large_model_result即可，无需修改其他任何地方
+        String large_model_result = "我是大模型生成结果";
+        edit_note_item temp_first_item = item_list_for_adapter.get(0);
+        if(temp_first_item.type==4) {
+            temp_first_item.large_model_result = large_model_result;
+            item_list_for_adapter.set(0, temp_first_item);
+        }
+        else {
+            edit_note_item large_model_item = new edit_note_item(4);
+            large_model_item.position = 0;
+            large_model_item.large_model_result = large_model_result;
+            item_list_for_adapter.add(0, large_model_item);
+        }
+
+        save_clicked();
         show_message("edit title: back clicked");
         Intent returnIntent = new Intent();
         returnIntent.putExtra("new_name", note_name);
@@ -533,7 +549,25 @@ public class EditNote extends AppCompatActivity {
                 Bundle extras = data.getExtras();
                 assert extras != null;
                 this.new_image_bitmap_result = (Bitmap) extras.get("data");
-                edit_note_label_recycle_view_adapter.image_audio_video_result.image_bitmap = new_image_bitmap_result;
+                File tempFile = new File(this.getCacheDir(), "image.png");
+                int temp_temp_file_index=0;
+                while(tempFile.exists()){
+                    tempFile = new File(this.getCacheDir(), "image"+temp_temp_file_index+".png");
+                    temp_temp_file_index++;
+                }
+                try {
+                    // 创建文件输出流
+                    FileOutputStream fos = new FileOutputStream(tempFile);
+                    // 压缩并写入文件
+                    this.new_image_bitmap_result.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                    // 关闭输出流
+                    fos.flush();
+                    fos.close();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+                edit_note_label_recycle_view_adapter.image_audio_video_result.image_path = tempFile.getAbsolutePath();
                 edit_note_label_recycle_view_adapter.set_image_after_result();
             }
         }
@@ -543,8 +577,26 @@ public class EditNote extends AppCompatActivity {
                     this.new_image_path_result = Objects.requireNonNull(data.getData()).toString();
                     InputStream inputStream = getContentResolver().openInputStream(Objects.requireNonNull(data.getData()));
                     this.new_image_bitmap_result = BitmapFactory.decodeStream(inputStream);
-                    edit_note_label_recycle_view_adapter.image_audio_video_result.image_path = new_image_path_result;
-                    edit_note_label_recycle_view_adapter.image_audio_video_result.image_bitmap = new_image_bitmap_result;
+
+                    File tempFile = new File(this.getCacheDir(), "image.png");
+                    int temp_temp_file_index=0;
+                    while(tempFile.exists()){
+                        tempFile = new File(this.getCacheDir(), "image"+temp_temp_file_index+".png");
+                        temp_temp_file_index++;
+                    }
+                    try {
+                        // 创建文件输出流
+                        FileOutputStream fos = new FileOutputStream(tempFile);
+                        // 压缩并写入文件
+                        this.new_image_bitmap_result.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                        // 关闭输出流
+                        fos.flush();
+                        fos.close();
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    edit_note_label_recycle_view_adapter.image_audio_video_result.image_path = tempFile.getAbsolutePath();
                     edit_note_label_recycle_view_adapter.set_image_after_result();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();

@@ -2,6 +2,7 @@ package com.example.nootbook;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
@@ -45,7 +46,6 @@ class edit_note_item{
     int edit_text_line_num;
 
     String image_path;
-    Bitmap image_bitmap;
     boolean image_show;
     boolean image_edit_show;
     int image_width;
@@ -81,7 +81,6 @@ class edit_note_item{
 
 class on_item_click_listener_result{
     String image_path;
-    Bitmap image_bitmap;
 
     Uri video_uri;
     MediaController video_controler;
@@ -90,7 +89,6 @@ class on_item_click_listener_result{
 
     public on_item_click_listener_result(){
         image_path = null;
-        image_bitmap = null;
         video_uri = null;
         audio_byte = null;
     }
@@ -352,7 +350,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
 
             return new_label_view_holder;
         }
-        else {  // viewType=5，large model output
+        else {  // viewType=4，large model output
             View itemView = LayoutInflater.from(this.context).inflate(R.layout.edit_note_large_model_text, parent, false);
             labelViewHolder new_label_view_holder = new labelViewHolder(itemView, this.context);
 
@@ -365,7 +363,6 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
     void set_image_after_result(){
         edit_note_item aim_edit_item = item_list.get(waiting_image_position);
         aim_edit_item.image_path = image_audio_video_result.image_path;
-        aim_edit_item.image_bitmap = image_audio_video_result.image_bitmap;
         aim_edit_item.image_show = true;
         aim_edit_item.image_width = 340;
         item_list.set(waiting_image_position, aim_edit_item);
@@ -421,16 +418,24 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
         if(viewType==1){  // 图片
             RecyclerView.LayoutParams edit_note_image_total_box_layout_param = (RecyclerView.LayoutParams) holder.edit_note_image_total_box.getLayoutParams();
             edit_note_image_total_box_layout_param.height = 0;
-            if(aim_edit_note_item.image_show && aim_edit_note_item.image_bitmap!=null){
-                holder.edit_note_image_view.setVisibility(View.VISIBLE);
-                int image_width=aim_edit_note_item.image_bitmap.getWidth();
-                int image_height=aim_edit_note_item.image_bitmap.getHeight();
+            if(aim_edit_note_item.image_show){
+                Bitmap temp_bitmap = null;
+                File file = new File(aim_edit_note_item.image_path);
+                // 检查文件是否存在
+                if (file.exists()) {
+                    holder.edit_note_image_view.setVisibility(View.VISIBLE);
+                    temp_bitmap = BitmapFactory.decodeFile(aim_edit_note_item.image_path);
+                } else {
+                    holder.edit_note_image_view.setVisibility(View.GONE);
+                }
+                int image_width=temp_bitmap.getWidth();
+                int image_height=temp_bitmap.getHeight();
                 ConstraintLayout.LayoutParams edit_note_image_layout_param = (ConstraintLayout.LayoutParams) holder.edit_note_image_view.getLayoutParams();
                 int image_height_in_px = Math.round((float) (aim_edit_note_item.image_width*image_height/image_width) * dp_to_px_ratio);
                 edit_note_image_layout_param.height = image_height_in_px;
                 edit_note_image_layout_param.width = Math.round(aim_edit_note_item.image_width * dp_to_px_ratio);
                 holder.edit_note_image_view.setLayoutParams(edit_note_image_layout_param);
-                holder.edit_note_image_view.setImageBitmap(aim_edit_note_item.image_bitmap);
+                holder.edit_note_image_view.setImageBitmap(temp_bitmap);
                 edit_note_image_total_box_layout_param.height += image_height_in_px;
             }
             else{

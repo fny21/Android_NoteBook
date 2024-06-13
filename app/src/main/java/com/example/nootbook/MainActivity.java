@@ -42,7 +42,10 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private float dp_to_px_ratio;  // 将dp转为像素值时乘的比例因子
     private int delete_label_position;
     private int unlabeled_label_position;
-    private TreeMap<Integer, Integer> deleted_note_to_label_map;  // 删除的note原本属于哪个label  // TODO
+    private HashMap<String, String> deleted_note_to_label_map;  // 删除的note原本属于哪个label  // TODO
     private labelRecycleViewAdapter label_recycle_view_adapter;
 
     private ConstraintLayout user_info_layout;
@@ -78,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView upload_head_button;
 
     String header_image_path;
-    Bitmap header_image_bitmap;  // TODO
     String new_header_image_path;
     Bitmap new_header_image_bitmap;
 
@@ -102,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
     String pass_word;  // TODO
 
     int editing_position;
+
+    static boolean searching = false;
 
     private UserAuthHelper authHelper;
     private FirestoreHelper firestoreHelper;
@@ -133,7 +137,14 @@ public class MainActivity extends AppCompatActivity {
                             if (data != null) {
                                 String returned_username = data.getStringExtra("username");
                                 String returned_password = data.getStringExtra("password");
-                                set_data_after_log_in(returned_username, returned_password);
+                                label_names = new ArrayList<>();
+                                list_for_adapter = new ArrayList<>();
+                                adapter_map_to_label = new TreeMap<>();
+                                label_map_to_adapter = new TreeMap<>();
+                                deleted_note_to_label_map = new HashMap<>();
+                                delete_label_position = 0;
+                                unlabeled_label_position = 0;
+                                loadData(returned_username, returned_password);
                             }
                         }
                         else{
@@ -212,23 +223,40 @@ public class MainActivity extends AppCompatActivity {
             add_in_label_and_adapter(0, 0, new_note_item);
             change_map(-1, 1, 1);
             put_new_adapter_label_map(0, 0);
-            firestoreHelper.addLabel(authHelper.getCurrentUser().getUid(), String.valueOf(new_note_item.label_id), new_note_item.toMap(), new FirestoreHelper.FirestoreCallback() {
-                @Override
-                public void onSuccess(Object result) {
-                    Log.d("FirestoreHelper", "Label added successfully");
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    Log.e("FirestoreHelper", "Failed to add label: " + e.getMessage());
-                }
-            });
         });
 
         setting_search_button.setOnClickListener(v -> {
             String search_string = setting_search_content.getText().toString();
             show_error("search: "+search_string);
-            // TODO: finish search
+            if(search_string.length()==0){
+                searching = false;
+                for(int i=0; i<list_for_adapter.size(); i++) {
+                    note_list_item temp_one_item = list_for_adapter.get(i);
+                    if(temp_one_item.type==1){
+                        label_recycle_view_adapter.changeData(i);
+                    }
+                }
+            }
+            else{
+                searching = true;
+                for(int i=0; i<label_names.size(); i++) {
+                    note_list_item temp_one_item = label_names.get(i);
+                    if(temp_one_item.type==1){
+                        // TODO: finish search  判断这条笔记是否符合筛选条件
+                        // 前端所有要修改的变量已经给出，无需添加任何其他修改。
+                        if(true){  // 符合条件
+                            temp_one_item.search_aim = true;
+                            temp_one_item.search_string = "";  // 显示匹配到的字符串局部
+                            // 如笔记内容为abskjvisse，搜索jvi，则search_string可以设为kjvis或skjviss，方便看搜到的具体内容是什么
+                        }
+                        else{
+                            temp_one_item.search_aim = false;
+                        }
+                    }
+                }
+                set_adapter_list_from_main_list(true);
+            }
+
         });
 
         user_info_layout.setOnClickListener(new View.OnClickListener() {
@@ -250,11 +278,13 @@ public class MainActivity extends AppCompatActivity {
                 show_error("修改成功");
                 change_user_info_background_layout.setVisibility(View.INVISIBLE);
 
-                if (new_header_image_bitmap != null) {
-                    header_image_path = new_header_image_path;
-                    header_image_bitmap = new_header_image_bitmap;
-                    BitmapDrawable temp_bitmapDrawable = new BitmapDrawable(getResources(), header_image_bitmap);
-                    user_head_imageview.setBackground(temp_bitmapDrawable);
+                if (new_header_image_path!=null) {
+                    if(new_header_image_path.length()>0) {
+                        header_image_path = new_header_image_path;
+                        Bitmap temp_bitmap = BitmapFactory.decodeFile(header_image_path);
+                        BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), temp_bitmap);
+                        user_head_imageview.setBackground(bitmapDrawable);
+                    }
                 }
 
                 user_info_layout.setEnabled(true);
@@ -280,9 +310,7 @@ public class MainActivity extends AppCompatActivity {
                     change_user_info_password_again_text_view.setText(pass_word);
                     show_error("密码修改成功");
                 }
-
-                // 更新Firebase中的用户信息
-                saveData();
+                saveData(false);
             }
         });
 
@@ -297,13 +325,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    void saveData()
+    void saveData(boolean set_data)
     {
-        firestoreHelper = new FirestoreHelper(label_names, deleted_note_to_label_map, header_image_bitmap, label_unique_index, note_unique_index, user_sign, user_name, pass_word);
+        firestoreHelper = new FirestoreHelper(label_names, deleted_note_to_label_map, header_image_path, label_unique_index, note_unique_index, user_sign, user_name, pass_word);
         firestoreHelper.saveLocalVariablesToDatabase(authHelper.getCurrentUser().getUid(), new FirestoreHelper.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
-
+                if(set_data){
+                    set_data_after_check_labels();
+                }
             }
 
             @Override
@@ -313,28 +343,26 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    void loadData()
+    void loadData(String username, String password)
     {
         firestoreHelper = new FirestoreHelper();
         firestoreHelper.loadVariablesFromDatabase(authHelper.getCurrentUser().getUid(), new FirestoreHelper.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
-                if (result instanceof FirestoreHelper) {
-                    FirestoreHelper firestoreHelper = (FirestoreHelper) result;
-                    label_names = firestoreHelper.label_names;
-                    deleted_note_to_label_map = firestoreHelper.deleted_note_to_label_map;
-                    header_image_bitmap = firestoreHelper.header_image_bitmap;
-                    label_unique_index = firestoreHelper.label_unique_index;
-                    note_unique_index = firestoreHelper.note_unique_index;
-                    user_sign = firestoreHelper.user_sign;
-                    user_name = firestoreHelper.user_name;
-                    pass_word = firestoreHelper.pass_word;
-                }
+                label_names = firestoreHelper.label_names;
+                deleted_note_to_label_map = firestoreHelper.deleted_note_to_label_map;
+                label_unique_index = firestoreHelper.label_unique_index;
+                note_unique_index = firestoreHelper.note_unique_index;
+                user_sign = firestoreHelper.user_sign;
+                user_name = username;
+                pass_word = password;
+                header_image_path = firestoreHelper.user_head_path;
+                set_data_after_log_in();
             }
 
             @Override
             public void onFailure(Exception e) {
-
+                show_error("load failure");
             }
         });
     }
@@ -415,344 +443,215 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    void set_data_after_log_in(String username, String password) {
-        label_names = new ArrayList<>();
-        list_for_adapter = new ArrayList<>();
-        adapter_map_to_label = new TreeMap<>();
-        label_map_to_adapter = new TreeMap<>();
-        deleted_note_to_label_map = new TreeMap<>();
-        delete_label_position = 0;
-        unlabeled_label_position = 0;
+    void set_data_after_log_in() {
+        boolean need_save=false;
+        if (label_names.size() == 0) {
+            label_names.add(new note_list_item(0, true, false, "Unlabeled notes", get_unique_label_index(), -1));
+            label_names.add(new note_list_item(0, true, false, "Recently Deleted", get_unique_label_index(), -1));
+            need_save = true;
+        }
+        if(need_save){
+            saveData(true);
+        }
+        else {
+            set_data_after_check_labels();
+        }
+    }
 
-        // 从数据库加载数据
-        loadUserLabels(new FirestoreHelper.FirestoreCallback() {
+    void set_data_after_check_labels(){
+        if(user_sign!=null) {
+            hello_user.setText("Hi! " + user_sign);
+        }
+        else{
+            hello_user.setText("Hi! " + user_name);
+        }
+        change_user_info_username_text_view.setText(user_name);
+        change_user_info_password_text_view.setText(pass_word);
+        change_user_info_password_again_text_view.setText(pass_word);
+        if(header_image_path!=null){
+            if(header_image_path.length()>0){
+                Bitmap temp_bitmap = BitmapFactory.decodeFile(header_image_path);
+                BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), temp_bitmap);
+                user_head_imageview.setBackground(bitmapDrawable);
+                new_user_head_imageview.setBackground(bitmapDrawable);
+            }
+        }
+
+        dp_to_px_ratio = getResources().getDisplayMetrics().density;
+
+        // 笔记列表
+        LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
+        recyclerView.setLayoutManager(layoutManager);
+        layoutManager.setOrientation(RecyclerView.VERTICAL);
+        set_adapter_list_from_main_list(false);
+        // 设置Adapter
+        label_recycle_view_adapter = new labelRecycleViewAdapter(MainActivity.this, list_for_adapter, dp_to_px_ratio);
+
+        setting_sort_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onSuccess(Object result) {
-
-                if(label_names.size() == 0) {
-                    label_names.add(new note_list_item(0, true, false, "Unlabeled notes", get_unique_label_index(), -1));
-                    label_names.add(new note_list_item(0, true, false, "Recently Deleted", get_unique_label_index(), -1));
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                show_error("spinner position: " + position);
+                for (int i = 0; i < label_names.size(); i++) {
+                    note_list_item temp_note_item = label_names.get(i);
+                    if (temp_note_item.type == 0) {
+                        if (position == 0) {
+                            sort_label_names(i, 0);
+                        } else if (position == 1) {
+                            sort_label_names(i, 1);
+                        } else {
+                            sort_label_names(i, 2);
+                        }
+                    }
                 }
-                loadUserNotes(new FirestoreHelper.FirestoreCallback() {
-                    @Override
-                    public void onSuccess(Object result) {
-                        // Ensure "Unlabeled notes" and "Recently Deleted" labels are present
-
-
-                        user_sign = username;
-                        hello_user.setText("Hi! " + user_sign);
-                        change_user_info_username_text_view.setText(username);
-                        change_user_info_password_text_view.setText(password);
-                        change_user_info_password_again_text_view.setText(password);
-                        user_name = username;
-                        pass_word = password;
-
-                        dp_to_px_ratio = getResources().getDisplayMetrics().density;
-
-                        // 笔记列表
-                        LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
-                        recyclerView.setLayoutManager(layoutManager);
-                        layoutManager.setOrientation(RecyclerView.VERTICAL);
-                        set_adapter_list_from_main_list(false);
-                        // 设置Adapter
-                        label_recycle_view_adapter = new labelRecycleViewAdapter(MainActivity.this, list_for_adapter, dp_to_px_ratio);
-
-                        setting_sort_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                show_error("spinner position: " + position);
-                                for (int i = 0; i < label_names.size(); i++) {
-                                    note_list_item temp_note_item = label_names.get(i);
-                                    if (temp_note_item.type == 0) {
-                                        if (position == 0) {
-                                            sort_label_names(i, 0);
-                                        } else if (position == 1) {
-                                            sort_label_names(i, 1);
-                                        } else {
-                                            sort_label_names(i, 2);
-                                        }
-                                    }
-                                }
-                                set_adapter_list_from_main_list(true);
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-                                // 当Spinner没有任何项被选中时触发（通常不会触发）
-                            }
-                        });
-
-                        label_recycle_view_adapter.setOnItemClickListener(new labelRecycleViewAdapter.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(int position, int clicked_item, String new_name) {
-                                String item_name;
-                                if (clicked_item == 0) {
-                                    item_name = "background";
-                                } else if (clicked_item == 1) {
-                                    item_name = "show_or_hide";
-                                } else if (clicked_item == 2) {
-                                    item_name = "name_or_title";
-                                } else if (clicked_item == 3) {
-                                    item_name = "add_or_edit";
-                                } else if (clicked_item == 4) {
-                                    item_name = "delete";
-                                } else {
-                                    item_name = "error-unknown" + clicked_item;
-                                }
-                                Log.e(String.valueOf(this), "position: " + position + ", item: " + item_name + " been clicked");
-
-                                if (clicked_item == 1) {  // "show_or_hide"
-                                    note_list_item temp_item = list_for_adapter.get(position);
-                                    int index_in_label_names = adapter_map_to_label.get(position);
-
-                                    if (temp_item.type == 0 && temp_item.is_hided) {
-                                        temp_item.is_hided = false;
-                                        change_in_label_and_adapter(position, index_in_label_names, temp_item);
-                                        int new_changed_item_number = adapter_hide_to_show(position + 1, index_in_label_names + 1);
-                                        change_map(position, new_changed_item_number);
-                                    } else if (temp_item.type == 0 && !temp_item.is_hided) {
-                                        temp_item.is_hided = true;
-                                        change_in_label_and_adapter(position, index_in_label_names, temp_item);
-                                        int hide_item_number = adapter_show_to_hide(position + 1);
-                                        change_map(position, -hide_item_number);
-                                    } else {
-                                        Log.e(String.valueOf(this), "unexpected prefix in show_or_hide: " + temp_item.name);
-                                    }
-                                } else if (clicked_item == 2) {  // change name
-                                    note_list_item temp_item = list_for_adapter.get(position);
-                                    temp_item.name = new_name;
-                                    if (temp_item.type == 0) {
-                                        int position_in_label = adapter_map_to_label.get(position);
-                                        label_names.set(position_in_label, temp_item);
-                                        list_for_adapter.set(position, temp_item);
-                                    } else {
-                                        int position_in_label = locate_in_label_from_position_in_adapter(position);
-                                        label_names.set(position_in_label, temp_item);
-                                        list_for_adapter.set(position, temp_item);
-                                    }
-                                } else if (clicked_item == 3) {  // "add_or_edit"
-                                    note_list_item temp_item = list_for_adapter.get(position);
-                                    if (temp_item.type == 1) {
-                                        if (temp_item.deleted) {  // 删除找回
-                                            recall_from_recent_deleted(position);
-                                        } else {  // 编辑此条笔记
-                                            edit_note(position, temp_item);
-                                        }
-                                    } else {
-                                        // change shown list
-                                        int index_in_label_names = adapter_map_to_label.get(position);
-                                        if (temp_item.type == 0 && temp_item.is_hided) {
-                                            temp_item.is_hided = false;
-                                            change_in_label_and_adapter(position, index_in_label_names, temp_item);
-                                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
-                                            add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
-                                            int new_shown_item_number = 1 + adapter_hide_to_show(position + 2, index_in_label_names + 2);
-                                            change_map(position, new_shown_item_number, 1);
-                                        } else if (temp_item.type == 0 && !temp_item.is_hided) {
-                                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
-                                            add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
-                                            change_map(position, 1, 1);
-                                        } else {
-                                            Log.e(String.valueOf(this), "unexpected prefix in add_or_edit: " + temp_item.name);
-                                        }
-                                    }
-                                } else if (clicked_item == 4) {  // "delete"
-                                    note_list_item temp_item = list_for_adapter.get(position);
-                                    if (temp_item.type == 1) {
-                                        if (temp_item.deleted) {  // 彻底删除
-                                            int position_in_label = locate_in_label_from_position_in_adapter(position);
-                                            delete_from_adapter_and_label(position, position_in_label);
-                                            change_map(position, -1, -1);
-                                            firestoreHelper.completeDeleteNote(authHelper.getCurrentUser().getUid(), temp_item.note_id, new FirestoreHelper.FirestoreCallback() {
-                                                @Override
-                                                public void onSuccess(Object result) {
-                                                }
-
-                                                @Override
-                                                public void onFailure(Exception e) {
-                                                }
-                                            });
-                                        } else {  // 移动到最近删除
-                                            move_note_to_recent_delete(position, temp_item);
-                                            firestoreHelper.deleteNote(authHelper.getCurrentUser().getUid(), String.valueOf(temp_item.note_id), new FirestoreHelper.FirestoreCallback() {
-                                                @Override
-                                                public void onSuccess(Object result) {
-                                                }
-
-                                                @Override
-                                                public void onFailure(Exception e) {
-                                                }
-                                            });
-                                        }
-                                    } else if (temp_item.type == 0) {
-                                        if (temp_item.name.startsWith("Recently Deleted")) {  // 清空最近删除
-                                            int index_in_label_names = adapter_map_to_label.get(position);
-                                            if (index_in_label_names != delete_label_position) {
-                                                Log.e(String.valueOf(this), "delete_label_position is not right, please check!");
-                                            }
-                                            if (temp_item.is_hided) {  // 如果隐藏，先展开
-                                                temp_item.is_hided = false;
-                                                change_in_label_and_adapter(position, index_in_label_names, temp_item);
-                                                int new_changed_item_number = adapter_hide_to_show(position + 1, index_in_label_names + 1);
-                                                change_map(position, new_changed_item_number);
-                                            }
-
-                                            // 删除所有笔记
-                                            for (int i = index_in_label_names + 1; i < label_names.size(); i++) {
-                                                delete_from_adapter_and_label(position + i - index_in_label_names, i);
-
-                                                firestoreHelper.deleteNote(authHelper.getCurrentUser().getUid(), String.valueOf(label_names.get(i).note_id), new FirestoreHelper.FirestoreCallback() {
-                                                    @Override
-                                                    public void onSuccess(Object result) {
-                                                    }
-
-                                                    @Override
-                                                    public void onFailure(Exception e) {
-                                                    }
-                                                });
-                                            }
-                                            change_map(position + 1, index_in_label_names + 1 - label_names.size());
-
-                                            // 最后再隐藏
-                                            temp_item.is_hided = true;
-                                            change_in_label_and_adapter(position, index_in_label_names, temp_item);
-                                            int hide_item_number = adapter_show_to_hide(position + 1);
-                                            if (hide_item_number != 0) {
-                                                Log.e(String.valueOf(this), "after delete add, there is still note in recent delete, please check!");
-                                            }
-                                        } else {  // 依次移动到最近删除
-                                            int index_in_label_names = adapter_map_to_label.get(position);
-                                            if (temp_item.type == 0 && temp_item.is_hided) {  // 如果隐藏，先展开
-                                                temp_item.is_hided = false;
-                                                change_in_label_and_adapter(position, index_in_label_names, temp_item);
-                                                int new_changed_item_number = adapter_hide_to_show(position + 1, index_in_label_names + 1);
-                                                change_map(position, new_changed_item_number);
-                                            }
-
-                                            delete_label_notes(position);
-
-                                            // delete label
-                                            if (!temp_item.name.startsWith("Unlabeled notes")) {
-                                                delete_from_adapter_and_label(position, index_in_label_names);
-                                                remove_label_adapter_map(position, index_in_label_names);
-                                                change_map(position, -1, -1);
-                                            }
-                                        }
-                                    } else {
-                                        Log.e(String.valueOf(this), "unexpected name in delete: " + temp_item.name);
-                                    }
-                                }
-                            }
-                        });
-
-                        recyclerView.setAdapter(label_recycle_view_adapter);
-                        recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this, DividerItemDecoration.VERTICAL));
-                        recyclerView.setItemAnimator(new DefaultItemAnimator());
-
-                        deleteNoteUpdate();
-
-                        // 更新用户信息
-                        saveData();
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        Toast.makeText(MainActivity.this, "加载用户笔记失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                set_adapter_list_from_main_list(true);
+                saveData(false);
             }
 
             @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(MainActivity.this, "加载用户标签失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onNothingSelected(AdapterView<?> parent) {
+                // 当Spinner没有任何项被选中时触发（通常不会触发）
             }
         });
 
-    }
-
-    private void deleteNoteUpdate() {
-        // load deletedNoteToLabelRef
-        firestoreHelper.getDeletedNoteToLabel(authHelper.getCurrentUser().getUid(), new FirestoreHelper.FirestoreCallback() {
+        label_recycle_view_adapter.setOnItemClickListener(new labelRecycleViewAdapter.OnItemClickListener() {
             @Override
-            public void onSuccess(Object result) {
-                if (result instanceof QuerySnapshot) {
-                    QuerySnapshot querySnapshot = (QuerySnapshot) result;
-                    deleted_note_to_label_map.clear();
-                    for (QueryDocumentSnapshot document : querySnapshot) {
-                        int noteId = document.getId().hashCode();
-                        int labelId = document.getLong("labelId").intValue();
-                        deleted_note_to_label_map.put(noteId, labelId);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(MainActivity.this, "加载已删除笔记失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void loadUserNotes(final FirestoreHelper.FirestoreCallback callback) {
-        String user_id = authHelper.getCurrentUser().getUid();
-        firestoreHelper.getNotes(user_id, new FirestoreHelper.FirestoreCallback() {
-            @Override
-            public void onSuccess(Object result) {
-                if (result instanceof QuerySnapshot) {
-                    QuerySnapshot querySnapshot = (QuerySnapshot) result;
-                    for (QueryDocumentSnapshot document : querySnapshot) {
-                        note_list_item note_item = new note_list_item();
-                        note_item.note_id = document.getId().hashCode();
-                        note_item.name = document.getString("title");
-                        note_item.init_time = document.getTimestamp("timestamp").toDate().toString();
-                        note_item.modify_time = document.getTimestamp("timestamp").toDate().toString();
-                        note_item.type = 1;
-                        note_item.deleted = document.getBoolean("deleted") == null ?  false : document.getBoolean("deleted");
-                        label_names.add(note_item);
-                    }
-                    callback.onSuccess(null);
+            public void onItemClick(int position, int clicked_item, String new_name) {
+                String item_name;
+                if (clicked_item == 0) {
+                    item_name = "background";
+                } else if (clicked_item == 1) {
+                    item_name = "show_or_hide";
+                } else if (clicked_item == 2) {
+                    item_name = "name_or_title";
+                } else if (clicked_item == 3) {
+                    item_name = "add_or_edit";
+                } else if (clicked_item == 4) {
+                    item_name = "delete";
                 } else {
-                    Toast.makeText(MainActivity.this, "Unexpected result type: " + result.getClass().getName(), Toast.LENGTH_SHORT).show();
+                    item_name = "error-unknown" + clicked_item;
                 }
-            }
+                Log.e(String.valueOf(this), "position: " + position + ", item: " + item_name + " been clicked");
 
-            @Override
-            public void onFailure(Exception e) {
-                callback.onFailure(e);
-            }
-        });
-    }
+                if (clicked_item == 1) {  // "show_or_hide"
+                    note_list_item temp_item = list_for_adapter.get(position);
+                    int index_in_label_names = adapter_map_to_label.get(position);
 
-    private void loadUserLabels(FirestoreHelper.FirestoreCallback callback) {
-        String userId = authHelper.getCurrentUser().getUid();
-        firestoreHelper.getLabels(userId, new FirestoreHelper.FirestoreCallback() {
-            @Override
-            public void onSuccess(Object result) {
-                if (result instanceof QuerySnapshot) {
-                    QuerySnapshot querySnapshot = (QuerySnapshot) result;
-                    for (QueryDocumentSnapshot document : querySnapshot) {
-                        note_list_item label_item = new note_list_item();
-                        label_item.label_id = document.getId().hashCode();
-                        label_item.name = document.getString("name");
-                        label_item.is_hided = document.getBoolean("is_hided");
-
-                        label_item.init_time = document.getString("init_time");
-                        label_item.modify_time = document.getString("modify_time");
-
-                        label_item.type = 0;
-                        label_names.add(label_item);
+                    if (temp_item.type == 0 && temp_item.is_hided) {
+                        temp_item.is_hided = false;
+                        change_in_label_and_adapter(position, index_in_label_names, temp_item);
+                        int new_changed_item_number = adapter_hide_to_show(position + 1, index_in_label_names + 1);
+                        change_map(position, new_changed_item_number);
+                    } else if (temp_item.type == 0 && !temp_item.is_hided) {
+                        temp_item.is_hided = true;
+                        change_in_label_and_adapter(position, index_in_label_names, temp_item);
+                        int hide_item_number = adapter_show_to_hide(position + 1);
+                        change_map(position, -hide_item_number);
+                    } else {
+                        Log.e(String.valueOf(this), "unexpected prefix in show_or_hide: " + temp_item.name);
                     }
-                    callback.onSuccess(querySnapshot);
-                } else {
-                    callback.onFailure(new Exception("Unexpected result type: " + result.getClass().getName()));
+                } else if (clicked_item == 2) {  // change name
+                    note_list_item temp_item = list_for_adapter.get(position);
+                    temp_item.name = new_name;
+                    if (temp_item.type == 0) {
+                        int position_in_label = adapter_map_to_label.get(position);
+                        label_names.set(position_in_label, temp_item);
+                        list_for_adapter.set(position, temp_item);
+                    } else {
+                        int position_in_label = locate_in_label_from_position_in_adapter(position);
+                        label_names.set(position_in_label, temp_item);
+                        list_for_adapter.set(position, temp_item);
+                    }
+                    saveData(false);
+                } else if (clicked_item == 3) {  // "add_or_edit"
+                    note_list_item temp_item = list_for_adapter.get(position);
+                    if (temp_item.type == 1) {
+                        if (temp_item.deleted) {  // 删除找回
+                            recall_from_recent_deleted(position);
+                        } else {  // 编辑此条笔记
+                            edit_note(position, temp_item);
+                        }
+                    } else {
+                        // change shown list
+                        int index_in_label_names = adapter_map_to_label.get(position);
+                        if (temp_item.type == 0 && temp_item.is_hided) {
+                            temp_item.is_hided = false;
+                            change_in_label_and_adapter(position, index_in_label_names, temp_item);
+                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
+                            add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
+                            int new_shown_item_number = 1 + adapter_hide_to_show(position + 2, index_in_label_names + 2);
+                            change_map(position, new_shown_item_number, 1);
+                        } else if (temp_item.type == 0 && !temp_item.is_hided) {
+                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
+                            add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
+                            change_map(position, 1, 1);
+                        } else {
+                            Log.e(String.valueOf(this), "unexpected prefix in add_or_edit: " + temp_item.name);
+                        }
+                    }
+                } else if (clicked_item == 4) {  // "delete"
+                    note_list_item temp_item = list_for_adapter.get(position);
+                    if (temp_item.type == 1) {
+                        if (temp_item.deleted) {  // 彻底删除
+                            int position_in_label = locate_in_label_from_position_in_adapter(position);
+                            delete_from_adapter_and_label(position, position_in_label);
+                            change_map(position, -1, -1);
+                        } else {  // 移动到最近删除
+                            move_note_to_recent_delete(position, temp_item);
+                        }
+                    } else if (temp_item.type == 0) {
+                        if (temp_item.name.startsWith("Recently Deleted")) {  // 清空最近删除
+                            int index_in_label_names = adapter_map_to_label.get(position);
+                            if (index_in_label_names != delete_label_position) {
+                                Log.e(String.valueOf(this), "delete_label_position is not right, please check!");
+                            }
+                            if (temp_item.is_hided) {  // 如果隐藏，先展开
+                                temp_item.is_hided = false;
+                                change_in_label_and_adapter(position, index_in_label_names, temp_item);
+                                int new_changed_item_number = adapter_hide_to_show(position + 1, index_in_label_names + 1);
+                                change_map(position, new_changed_item_number);
+                            }
+
+                            // 删除所有笔记
+                            for (int i = index_in_label_names + 1; i < label_names.size(); i++) {
+                                delete_from_adapter_and_label(position + i - index_in_label_names, i);
+                            }
+                            change_map(position + 1, index_in_label_names + 1 - label_names.size());
+
+                            // 最后再隐藏
+                            temp_item.is_hided = true;
+                            change_in_label_and_adapter(position, index_in_label_names, temp_item);
+                            int hide_item_number = adapter_show_to_hide(position + 1);
+                            if (hide_item_number != 0) {
+                                Log.e(String.valueOf(this), "after delete add, there is still note in recent delete, please check!");
+                            }
+                        } else {  // 依次移动到最近删除
+                            int index_in_label_names = adapter_map_to_label.get(position);
+                            if (temp_item.type == 0 && temp_item.is_hided) {  // 如果隐藏，先展开
+                                temp_item.is_hided = false;
+                                change_in_label_and_adapter(position, index_in_label_names, temp_item);
+                                int new_changed_item_number = adapter_hide_to_show(position + 1, index_in_label_names + 1);
+                                change_map(position, new_changed_item_number);
+                            }
+
+                            delete_label_notes(position);
+
+                            // delete label
+                            if (!temp_item.name.startsWith("Unlabeled notes")) {
+                                delete_from_adapter_and_label(position, index_in_label_names);
+                                remove_label_adapter_map(position, index_in_label_names);
+                                change_map(position, -1, -1);
+                            }
+                        }
+                    } else {
+                        Log.e(String.valueOf(this), "unexpected name in delete: " + temp_item.name);
+                    }
                 }
             }
-
-            @Override
-            public void onFailure(Exception e) {
-                callback.onFailure(e);
-            }
         });
+
+        recyclerView.setAdapter(label_recycle_view_adapter);
+        recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this, DividerItemDecoration.VERTICAL));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
     void sort_label_names(int start_label_position, int sort_mode){
@@ -870,12 +769,14 @@ public class MainActivity extends AppCompatActivity {
         }
         list_for_adapter.add(position_in_adapter, item_name);
         label_recycle_view_adapter.addData(position_in_adapter);
+        saveData(false);
     }
 
     void change_in_label_and_adapter(int position_in_adapter, int position_in_label, note_list_item note_item){
         label_names.set(position_in_label, note_item);
         list_for_adapter.set(position_in_adapter, note_item);
         label_recycle_view_adapter.changeData(position_in_adapter);
+        saveData(false);
     }
 
     int adapter_hide_to_show(int first_note_position_in_adapter, int first_note_position_in_label){
@@ -935,6 +836,7 @@ public class MainActivity extends AppCompatActivity {
         if(position_in_label<unlabeled_label_position){
             unlabeled_label_position-=1;
         }
+        saveData(false);
     }
 
     int find_label_id_of_a_note(int position_in_adapter){
@@ -956,7 +858,7 @@ public class MainActivity extends AppCompatActivity {
 
         note_list_item new_deleted_note_item = new note_list_item(1, false, true, note_item.name, -1, get_unique_note_index());
         int original_label_id = find_label_id_of_a_note(position_in_adapter);
-        deleted_note_to_label_map.put(new_deleted_note_item.note_id, original_label_id);
+        deleted_note_to_label_map.put(""+new_deleted_note_item.note_id, ""+original_label_id);
 
         int delete_position_in_adapter = label_map_to_adapter.get(delete_label_position);
         note_list_item temp_note_item = list_for_adapter.get(delete_position_in_adapter);
@@ -966,6 +868,7 @@ public class MainActivity extends AppCompatActivity {
         else{
             label_names.add(delete_label_position+1, new_deleted_note_item);
         }
+        saveData(false);
     }
 
     void delete_label_notes(int position_in_adapter){
@@ -1006,7 +909,7 @@ public class MainActivity extends AppCompatActivity {
         int position_in_label = locate_in_label_from_position_in_adapter(position_in_adapter);
         note_list_item recalled_item = list_for_adapter.get(position_in_adapter);
         delete_from_adapter_and_label(position_in_adapter, position_in_label);
-        int aim_label_id = deleted_note_to_label_map.get(recalled_item.note_id);
+        int aim_label_id = Integer.parseInt(deleted_note_to_label_map.get(""+recalled_item.note_id));
         int aim_label_adapter_position = find_adapter_position_from_label_id(aim_label_id);
 
         recalled_item.deleted = false;
@@ -1020,6 +923,7 @@ public class MainActivity extends AppCompatActivity {
             change_map(temp_position_in_adapter, 1, 1);
             sort_label_names(unlabeled_label_position, setting_sort_spinner.getSelectedItemPosition());
             set_adapter_list_from_main_list(true);
+            saveData(false);
         }
         else{  // label存在，放到label里
             recalled_item.label_id = aim_label_id;
@@ -1028,6 +932,7 @@ public class MainActivity extends AppCompatActivity {
             change_map(aim_label_adapter_position, 1, 1);
             sort_label_names(aim_label_label_position, setting_sort_spinner.getSelectedItemPosition());
             set_adapter_list_from_main_list(true);
+            saveData(false);
         }
     }
 
@@ -1125,18 +1030,55 @@ public class MainActivity extends AppCompatActivity {
                 Bundle extras = data.getExtras();
                 assert extras != null;
                 new_header_image_bitmap = (Bitmap) extras.get("data");
-                BitmapDrawable temp_bitmapDrawable = new BitmapDrawable(getResources(), new_header_image_bitmap);
-                new_user_head_imageview.setBackground(temp_bitmapDrawable);
+                File tempFile = new File(this.getCacheDir(), "image.png");
+                int temp_temp_file_index=0;
+                while(tempFile.exists()){
+                    tempFile = new File(this.getCacheDir(), "image"+temp_temp_file_index+".png");
+                    temp_temp_file_index++;
+                }
+                try {
+                    // 创建文件输出流
+                    FileOutputStream fos = new FileOutputStream(tempFile);
+                    // 压缩并写入文件
+                    new_header_image_bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                    // 关闭输出流
+                    fos.flush();
+                    fos.close();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+                new_header_image_path = tempFile.getAbsolutePath();
+                BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), new_header_image_bitmap);
+                new_user_head_imageview.setBackground(bitmapDrawable);
             }
         }
         else if (requestCode == 12) { // 打开相册，选新头像
             if (resultCode == Activity.RESULT_OK && data != null) {
                 try {
-                    new_header_image_path = Objects.requireNonNull(data.getData()).toString();
                     InputStream inputStream = getContentResolver().openInputStream(Objects.requireNonNull(data.getData()));
                     new_header_image_bitmap = BitmapFactory.decodeStream(inputStream);
-                    BitmapDrawable temp_bitmapDrawable = new BitmapDrawable(getResources(), new_header_image_bitmap);
-                    new_user_head_imageview.setBackground(temp_bitmapDrawable);
+                    File tempFile = new File(this.getCacheDir(), "image.png");
+                    int temp_temp_file_index=0;
+                    while(tempFile.exists()){
+                        tempFile = new File(this.getCacheDir(), "image"+temp_temp_file_index+".png");
+                        temp_temp_file_index++;
+                    }
+                    try {
+                        // 创建文件输出流
+                        FileOutputStream fos = new FileOutputStream(tempFile);
+                        // 压缩并写入文件
+                        new_header_image_bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                        // 关闭输出流
+                        fos.flush();
+                        fos.close();
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    new_header_image_path = tempFile.getAbsolutePath();
+                    BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), new_header_image_bitmap);
+                    new_user_head_imageview.setBackground(bitmapDrawable);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -1146,11 +1088,13 @@ public class MainActivity extends AppCompatActivity {
 
     private int get_unique_label_index(){
         label_unique_index++;
+        saveData(false);
         return label_unique_index;
     }
 
     private int get_unique_note_index(){
         note_unique_index++;
+        saveData(false);
         return note_unique_index;
     }
 }
