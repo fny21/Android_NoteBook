@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -249,6 +250,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
+                // 显示进度条
+                ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setMessage("Searching...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 // 使用计数器来跟踪异步操作的完成情况
                 final int[] counter = {itemsToUpdate.size()};
 
@@ -263,14 +270,15 @@ public class MainActivity extends AppCompatActivity {
                             } else {
                                 List<Map<String, Object>> items = (List<Map<String, Object>>) document.get("items");
                                 if (items != null) {
-                                    String content = "";
+                                    StringBuilder contentBuilder = new StringBuilder();
                                     for (Map<String, Object> item : items) {
                                         int type = ((Long) item.get("type")).intValue();
                                         if (type != 0) {
                                             continue;
                                         }
-                                        content += (String) item.get("content");
+                                        contentBuilder.append((String) item.get("edit_text_string"));
                                     }
+                                    String content = contentBuilder.toString();
                                     int index = content.indexOf(search_string);
                                     if (index != -1) {  // 符合条件
                                         temp_one_item.search_aim = true;
@@ -296,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
                             // 减少计数器，当所有异步操作完成时更新适配器
                             counter[0]--;
                             if (counter[0] == 0) {
+                                progressDialog.dismiss();
                                 set_adapter_list_from_main_list(true);
                             }
                         }
@@ -303,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
 
 
         user_info_layout.setOnClickListener(new View.OnClickListener() {
