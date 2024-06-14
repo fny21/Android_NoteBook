@@ -392,6 +392,18 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
+
+                firestoreHelper.updateUser(authHelper.getCurrentUser().getUid(), user_name, pass_word, new_header_image_path, new FirestoreHelper.FirestoreCallback() {
+                    @Override
+                    public void onSuccess(Object result) {
+                        saveData(false);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        show_error("update user info failure");
+                    }
+                });
                 saveData(false);
             }
         });
