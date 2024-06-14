@@ -263,21 +263,22 @@ public class MainActivity extends AppCompatActivity {
                             } else {
                                 List<Map<String, Object>> items = (List<Map<String, Object>>) document.get("items");
                                 if (items != null) {
+                                    String content = "";
                                     for (Map<String, Object> item : items) {
                                         int type = ((Long) item.get("type")).intValue();
                                         if (type != 0) {
                                             continue;
                                         }
-                                        String content = (String) item.get("edit_text_string");
-                                        int index = content.indexOf(search_string);
-                                        if (index != -1) {  // 符合条件
-                                            temp_one_item.search_aim = true;
-                                            int start = Math.max(0, index - 5); // 确保索引不越界
-                                            int end = Math.min(content.length(), index + search_string.length() + 5);
-                                            temp_one_item.search_string = content.substring(start, end);  // 显示匹配到的字符串局部
-                                        } else {
-                                            temp_one_item.search_aim = false;
-                                        }
+                                        content += (String) item.get("content");
+                                    }
+                                    int index = content.indexOf(search_string);
+                                    if (index != -1) {  // 符合条件
+                                        temp_one_item.search_aim = true;
+                                        int start = Math.max(0, index - 5); // 确保索引不越界
+                                        int end = Math.min(content.length(), index + search_string.length() + 5);
+                                        temp_one_item.search_string = content.substring(start, end);  // 显示匹配到的字符串局部
+                                    } else {
+                                        temp_one_item.search_aim = false;
                                     }
                                 }
                             }

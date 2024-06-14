@@ -39,7 +39,7 @@ public class LargeModelService {
     private String getSummaryFromModel(String user_msg) throws IOException, JSONException {
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType, String.format(
-                "{\"messages\":[{\"role\":\"user\",\"content\":\"%s\"}],\"system\":\"你是一位帮助用户生成内容摘要的助手，你只说英语\",\"disable_search\":false,\"enable_citation\":false,\"response_format\":\"text\"}",
+                "{\"messages\":[{\"role\":\"user\",\"content\":\"%s\"}],\"system\":\"你是一位帮助用户生成内容摘要的助手，你说英语\",\"disable_search\":false,\"enable_citation\":false,\"response_format\":\"text\"}",
                 user_msg
         ));
 

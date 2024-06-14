@@ -301,38 +301,21 @@ public class EditNote extends AppCompatActivity {
                 DocumentSnapshot document = (DocumentSnapshot) result;
                 if (document.exists()) {
                     List<Map<String, Object>> items = (List<Map<String, Object>>) document.get("items");
-                    String content = "";
+                    StringBuilder contentBuilder = new StringBuilder();
                     for (Map<String, Object> item : items) {
                         int type = ((Long) item.get("type")).intValue();
                         if (type == 0) {  // Text
-                            content += (String) item.get("edit_text_string");
+                            contentBuilder.append((String) item.get("edit_text_string"));
                             break;
                         }
                     }
+                    String content = contentBuilder.toString();
 
                     largeModelService.generateSummary(content, new LargeModelCallback() {
                         @Override
                         public void onSummaryGenerated(String large_model_result) {
-                            edit_note_item temp_first_item = item_list_for_adapter.get(0);
-                            if (temp_first_item.type == 4) {
-                                temp_first_item.large_model_result = large_model_result;
-                                item_list_for_adapter.set(0, temp_first_item);
-                            } else {
-                                edit_note_item large_model_item = new edit_note_item(4);
-                                large_model_item.position = 0;
-                                large_model_item.large_model_result = large_model_result;
-                                item_list_for_adapter.add(0, large_model_item);
-                            }
-
-                            save_clicked();
-                            show_message("edit title: back clicked");
-                            Intent returnIntent = new Intent();
-                            returnIntent.putExtra("new_name", note_name);
-                            Date currentDate = new Date();
-                            String dateString = currentDate.toString();
-                            returnIntent.putExtra("save_time", dateString);
-                            setResult(RESULT_OK, returnIntent);
-                            finish();
+                            updateAdapterWithSummary(large_model_result);
+                            saveAndReturn();
                         }
 
                         @Override
@@ -340,6 +323,8 @@ public class EditNote extends AppCompatActivity {
                             show_message("Error generating summary: " + e.getMessage());
                         }
                     });
+                } else {
+                    show_message("No such document exists.");
                 }
             }
 
@@ -349,6 +334,32 @@ public class EditNote extends AppCompatActivity {
             }
         });
     }
+
+    private void updateAdapterWithSummary(String large_model_result) {
+        edit_note_item temp_first_item = item_list_for_adapter.get(0);
+        if (temp_first_item.type == 4) {
+            temp_first_item.large_model_result = large_model_result;
+            item_list_for_adapter.set(0, temp_first_item);
+        } else {
+            edit_note_item large_model_item = new edit_note_item(4);
+            large_model_item.position = 0;
+            large_model_item.large_model_result = large_model_result;
+            item_list_for_adapter.add(0, large_model_item);
+        }
+    }
+
+    private void saveAndReturn() {
+        save_clicked();
+        show_message("edit title: back clicked");
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("new_name", note_name);
+        Date currentDate = new Date();
+        String dateString = currentDate.toString();
+        returnIntent.putExtra("save_time", dateString);
+        setResult(RESULT_OK, returnIntent);
+        finish();
+    }
+
 
 
     void image_clicked(){
