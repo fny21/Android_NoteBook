@@ -187,6 +187,9 @@ public class EditNote extends AppCompatActivity {
                                     noteItem.video_uri = Uri.parse((String) item.get("video_uri"));
                                     noteItem.video_width = ((Long) item.get("video_width")).intValue();
                                     break;
+                                case 4:
+                                    noteItem.large_model_result = (String) item.get("large_model_result");
+                                    break;
                             }
 
                             item_list_for_adapter.add(noteItem);
@@ -252,6 +255,9 @@ public class EditNote extends AppCompatActivity {
                     item.put("video_uri", one_item.video_uri.toString());
                     item.put("video_width", one_item.video_width);
                     break;
+                case 4:
+                    item.put("large_model_result", one_item.large_model_result);
+                    break;
             }
             items.add(item);
         }
@@ -287,34 +293,59 @@ public class EditNote extends AppCompatActivity {
 
     void back_clicked() {
         LargeModelService largeModelService = new LargeModelService();
-        largeModelService.generateSummary(note_name, new LargeModelCallback() {
-            @Override
-            public void onSummaryGenerated(String large_model_result) {
-                edit_note_item temp_first_item = item_list_for_adapter.get(0);
-                if (temp_first_item.type == 4) {
-                    temp_first_item.large_model_result = large_model_result;
-                    item_list_for_adapter.set(0, temp_first_item);
-                } else {
-                    edit_note_item large_model_item = new edit_note_item(4);
-                    large_model_item.position = 0;
-                    large_model_item.large_model_result = large_model_result;
-                    item_list_for_adapter.add(0, large_model_item);
-                }
 
-                save_clicked();
-                show_message("edit title: back clicked");
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra("new_name", note_name);
-                Date currentDate = new Date();
-                String dateString = currentDate.toString();
-                returnIntent.putExtra("save_time", dateString);
-                setResult(RESULT_OK, returnIntent);
-                finish();
+        String userId = authHelper.getCurrentUser().getUid();
+        firestoreHelper.getNoteDetail(userId, note_id, new FirestoreHelper.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                DocumentSnapshot document = (DocumentSnapshot) result;
+                if (document.exists()) {
+                    List<Map<String, Object>> items = (List<Map<String, Object>>) document.get("items");
+                    String content = "";
+                    for (Map<String, Object> item : items) {
+                        int type = ((Long) item.get("type")).intValue();
+                        if (type == 0) {  // Text
+                            content += (String) item.get("edit_text_string");
+                            break;
+                        }
+                    }
+
+                    largeModelService.generateSummary(content, new LargeModelCallback() {
+                        @Override
+                        public void onSummaryGenerated(String large_model_result) {
+                            edit_note_item temp_first_item = item_list_for_adapter.get(0);
+                            if (temp_first_item.type == 4) {
+                                temp_first_item.large_model_result = large_model_result;
+                                item_list_for_adapter.set(0, temp_first_item);
+                            } else {
+                                edit_note_item large_model_item = new edit_note_item(4);
+                                large_model_item.position = 0;
+                                large_model_item.large_model_result = large_model_result;
+                                item_list_for_adapter.add(0, large_model_item);
+                            }
+
+                            save_clicked();
+                            show_message("edit title: back clicked");
+                            Intent returnIntent = new Intent();
+                            returnIntent.putExtra("new_name", note_name);
+                            Date currentDate = new Date();
+                            String dateString = currentDate.toString();
+                            returnIntent.putExtra("save_time", dateString);
+                            setResult(RESULT_OK, returnIntent);
+                            finish();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            show_message("Error generating summary: " + e.getMessage());
+                        }
+                    });
+                }
             }
 
             @Override
-            public void onError(Exception e) {
-                show_message("Error generating summary: " + e.getMessage());
+            public void onFailure(Exception e) {
+                show_message("Error getting note detail: " + e.getMessage());
             }
         });
     }
