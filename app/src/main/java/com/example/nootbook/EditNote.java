@@ -285,32 +285,40 @@ public class EditNote extends AppCompatActivity {
     }
 
 
+    void back_clicked() {
+        LargeModelService largeModelService = new LargeModelService();
+        largeModelService.generateSummary(note_name, new LargeModelCallback() {
+            @Override
+            public void onSummaryGenerated(String large_model_result) {
+                edit_note_item temp_first_item = item_list_for_adapter.get(0);
+                if (temp_first_item.type == 4) {
+                    temp_first_item.large_model_result = large_model_result;
+                    item_list_for_adapter.set(0, temp_first_item);
+                } else {
+                    edit_note_item large_model_item = new edit_note_item(4);
+                    large_model_item.position = 0;
+                    large_model_item.large_model_result = large_model_result;
+                    item_list_for_adapter.add(0, large_model_item);
+                }
 
-    void back_clicked(){
-        // TODO: 调用大模型生成摘要，前端仅需要正确得到large_model_result即可，无需修改其他任何地方
-        String large_model_result = "我是大模型生成结果";
-        edit_note_item temp_first_item = item_list_for_adapter.get(0);
-        if(temp_first_item.type==4) {
-            temp_first_item.large_model_result = large_model_result;
-            item_list_for_adapter.set(0, temp_first_item);
-        }
-        else {
-            edit_note_item large_model_item = new edit_note_item(4);
-            large_model_item.position = 0;
-            large_model_item.large_model_result = large_model_result;
-            item_list_for_adapter.add(0, large_model_item);
-        }
+                save_clicked();
+                show_message("edit title: back clicked");
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("new_name", note_name);
+                Date currentDate = new Date();
+                String dateString = currentDate.toString();
+                returnIntent.putExtra("save_time", dateString);
+                setResult(RESULT_OK, returnIntent);
+                finish();
+            }
 
-        save_clicked();
-        show_message("edit title: back clicked");
-        Intent returnIntent = new Intent();
-        returnIntent.putExtra("new_name", note_name);
-        Date currentDate = new Date();
-        String dateString = currentDate.toString();
-        returnIntent.putExtra("save_time", dateString);
-        setResult(RESULT_OK, returnIntent);
-        finish();
+            @Override
+            public void onError(Exception e) {
+                show_message("Error generating summary: " + e.getMessage());
+            }
+        });
     }
+
 
     void image_clicked(){
         show_message("edit title: image clicked");
