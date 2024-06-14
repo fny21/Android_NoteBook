@@ -72,6 +72,22 @@ public class UserAuthHelper {
                 });
     }
 
+    public void updatePassword(String newPassword, final AuthCallback callback) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            user.updatePassword(newPassword).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        callback.onSuccess(user);
+                    } else {
+                        callback.onFailure(task.getException());
+                    }
+                }
+            });
+        }
+    }
+
     public interface AuthCallback {
         void onSuccess(FirebaseUser user);
         void onFailure(Exception e);

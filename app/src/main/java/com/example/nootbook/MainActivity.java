@@ -380,6 +380,17 @@ public class MainActivity extends AppCompatActivity {
                     change_user_info_password_text_view.setText(pass_word);
                     change_user_info_password_again_text_view.setText(pass_word);
                     show_error("密码修改成功");
+                    authHelper.updatePassword(pass_word, new UserAuthHelper.AuthCallback() {
+                        @Override
+                        public void onSuccess(FirebaseUser user) {
+                            show_error("update password success");
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            show_error("update password failure");
+                        }
+                    });
                 }
                 saveData(false);
             }

@@ -188,7 +188,7 @@ public class FirestoreHelper {
                                             deleted = false;
                                         }
 
-                                        temp_temp_string = (String) itemMap.get("search_aim");
+                                        temp_temp_string = (String) itemMap.get("search_aim") != null ? (String) itemMap.get("search_aim") : "false";
                                         if (temp_temp_string.startsWith("tru")) {
                                             search_aim = true;
                                         } else {

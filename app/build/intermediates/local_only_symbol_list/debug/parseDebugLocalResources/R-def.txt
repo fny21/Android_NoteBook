@@ -26,6 +26,7 @@ drawable ic_launcher_background
 drawable ic_launcher_foreground
 drawable light_background
 drawable light_yellow_background
+drawable nick_name
 drawable note_edit
 drawable password
 drawable password_again
@@ -53,6 +54,7 @@ id change_user_info_password_text
 id change_user_info_sign_image
 id change_user_info_sign_line
 id change_user_info_sign_text
+id change_user_info_user_name_unchange
 id change_user_info_username_image
 id change_user_info_username_line
 id change_user_info_username_text

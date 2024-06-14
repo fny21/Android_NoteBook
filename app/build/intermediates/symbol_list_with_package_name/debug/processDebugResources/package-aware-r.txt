@@ -3056,6 +3056,7 @@ drawable mtrl_switch_track
 drawable mtrl_switch_track_decoration
 drawable mtrl_tabs_default_indicator
 drawable navigation_empty_icon
+drawable nick_name
 drawable note_edit
 drawable notification_action_background
 drawable notification_bg
@@ -3216,6 +3217,7 @@ id change_user_info_password_text
 id change_user_info_sign_image
 id change_user_info_sign_line
 id change_user_info_sign_text
+id change_user_info_user_name_unchange
 id change_user_info_username_image
 id change_user_info_username_line
 id change_user_info_username_text

@@ -148,6 +148,10 @@
         "source": "com.example.nootbook.app-main-41:/drawable/edit_back.png"
     },
     {
+        "merged": "com.example.nootbook.app-debug-39:/drawable_nick_name.png.flat",
+        "source": "com.example.nootbook.app-main-41:/drawable/nick_name.png"
+    },
+    {
         "merged": "com.example.nootbook.app-debug-39:/layout_edit_note_text.xml.flat",
         "source": "com.example.nootbook.app-main-41:/layout/edit_note_text.xml"
     },
