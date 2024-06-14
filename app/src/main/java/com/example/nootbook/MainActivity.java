@@ -39,6 +39,7 @@ import android.widget.Toast;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -227,37 +228,81 @@ public class MainActivity extends AppCompatActivity {
 
         setting_search_button.setOnClickListener(v -> {
             String search_string = setting_search_content.getText().toString();
-            show_error("search: "+search_string);
-            if(search_string.length()==0){
+            show_error("search: " + search_string);
+
+            if (search_string.length() == 0) {
                 searching = false;
-                for(int i=0; i<list_for_adapter.size(); i++) {
+                for (int i = 0; i < list_for_adapter.size(); i++) {
                     note_list_item temp_one_item = list_for_adapter.get(i);
-                    if(temp_one_item.type==1){
+                    if (temp_one_item.type == 1) {
                         label_recycle_view_adapter.changeData(i);
                     }
                 }
-            }
-            else{
+            } else {
                 searching = true;
-                for(int i=0; i<label_names.size(); i++) {
+                List<note_list_item> itemsToUpdate = new ArrayList<>();
+
+                for (int i = 0; i < label_names.size(); i++) {
                     note_list_item temp_one_item = label_names.get(i);
-                    if(temp_one_item.type==1){
-                        // TODO: finish search  判断这条笔记是否符合筛选条件
-                        // 前端所有要修改的变量已经给出，无需添加任何其他修改。
-                        if(true){  // 符合条件
-                            temp_one_item.search_aim = true;
-                            temp_one_item.search_string = "";  // 显示匹配到的字符串局部
-                            // 如笔记内容为abskjvisse，搜索jvi，则search_string可以设为kjvis或skjviss，方便看搜到的具体内容是什么
-                        }
-                        else{
-                            temp_one_item.search_aim = false;
-                        }
+                    if (temp_one_item.type == 1) {
+                        itemsToUpdate.add(temp_one_item);
                     }
                 }
-                set_adapter_list_from_main_list(true);
-            }
 
+                // 使用计数器来跟踪异步操作的完成情况
+                final int[] counter = {itemsToUpdate.size()};
+
+                for (note_list_item temp_one_item : itemsToUpdate) {
+                    firestoreHelper.getNoteDetail(authHelper.getCurrentUser().getUid(), String.valueOf(temp_one_item.note_id), new FirestoreHelper.FirestoreCallback() {
+                        @Override
+                        public void onSuccess(Object result) {
+                            DocumentSnapshot document = (DocumentSnapshot) result;
+                            if (document == null) {
+                                show_error("search error: document is null");
+                                temp_one_item.search_aim = false;
+                            } else {
+                                List<Map<String, Object>> items = (List<Map<String, Object>>) document.get("items");
+                                if (items != null) {
+                                    for (Map<String, Object> item : items) {
+                                        int type = ((Long) item.get("type")).intValue();
+                                        if (type != 0) {
+                                            continue;
+                                        }
+                                        String content = (String) item.get("edit_text_string");
+                                        int index = content.indexOf(search_string);
+                                        if (index != -1) {  // 符合条件
+                                            temp_one_item.search_aim = true;
+                                            int start = Math.max(0, index - 5); // 确保索引不越界
+                                            int end = Math.min(content.length(), index + search_string.length() + 5);
+                                            temp_one_item.search_string = content.substring(start, end);  // 显示匹配到的字符串局部
+                                        } else {
+                                            temp_one_item.search_aim = false;
+                                        }
+                                    }
+                                }
+                            }
+                            checkCompletion();
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            temp_one_item.search_aim = false;
+                            show_error("search error: " + e.getMessage());
+                            checkCompletion();
+                        }
+
+                        private void checkCompletion() {
+                            // 减少计数器，当所有异步操作完成时更新适配器
+                            counter[0]--;
+                            if (counter[0] == 0) {
+                                set_adapter_list_from_main_list(true);
+                            }
+                        }
+                    });
+                }
+            }
         });
+
 
         user_info_layout.setOnClickListener(new View.OnClickListener() {
             @Override

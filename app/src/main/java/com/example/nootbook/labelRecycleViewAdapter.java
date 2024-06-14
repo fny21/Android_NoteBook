@@ -35,16 +35,6 @@ class note_list_item {
     boolean search_aim = false;
     String search_string;
 
-    note_list_item()
-    {
-        type = 0;
-        is_hided = false;
-        deleted = false;
-        name = "";
-        label_id = -1;
-        note_id = -1;
-    }
-
     note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_) {
         type = type_;
         is_hided = is_hided_;
@@ -56,19 +46,6 @@ class note_list_item {
         Date currentDate = new Date();
         init_time = currentDate.toString();
         modify_time = currentDate.toString();
-    }
-
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("label_id", label_id);
-        map.put("note_id", note_id);
-        map.put("type", type);
-        map.put("is_hided", is_hided);
-        map.put("deleted", deleted);
-        map.put("name", name);
-        map.put("init_time", init_time);
-        map.put("modify_time", modify_time);
-        return map;
     }
 }
 
