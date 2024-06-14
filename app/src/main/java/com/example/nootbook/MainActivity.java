@@ -94,16 +94,18 @@ public class MainActivity extends AppCompatActivity {
     ImageView setting_search_button;
     Spinner setting_sort_spinner;
     TextView hello_user;
-    TextView user_sign_text_view;
-    TextView change_user_info_username_text_view;
-    TextView change_user_info_password_text_view;
-    TextView change_user_info_password_again_text_view;
+    EditText user_sign_text_view;
+    EditText change_user_info_username_text_view;
+    EditText change_user_info_password_text_view;
+    EditText change_user_info_password_again_text_view;
+    TextView change_user_info_username_unchanged;
 
     int label_unique_index;  // TODO
     int note_unique_index;  // TODO
     String user_sign;  // TODO
     String user_name;  // TODO
     String pass_word;  // TODO
+    String true_user_sign;  // TODO
 
     int editing_position;
 
@@ -112,7 +114,20 @@ public class MainActivity extends AppCompatActivity {
     private UserAuthHelper authHelper;
     private FirestoreHelper firestoreHelper;
 
-
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(user_name!=null){
+            if(user_name.length()>0){
+                outState.putString("user_name", user_name);
+            }
+        }
+        if(pass_word!=null){
+            if(pass_word.length()>0){
+                outState.putString("pass_word", pass_word);
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,8 +205,6 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-        start_log_in_activity();
-
         user_head_imageview = findViewById(R.id.user_info_head);
         new_user_head_imageview = findViewById(R.id.change_user_info_head);
 
@@ -211,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
         change_user_info_username_text_view = findViewById(R.id.change_user_info_username_text);
         change_user_info_password_text_view = findViewById(R.id.change_user_info_password_text);
         change_user_info_password_again_text_view = findViewById(R.id.change_user_info_password_confirm_text);
+        change_user_info_username_unchanged = findViewById(R.id.change_user_info_user_name_unchange);
 
         // 下拉框
         String[] options = {"标题", "创建时间", "修改时间"};
@@ -221,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         setting_add_label.setOnClickListener(v -> {
-            note_list_item new_note_item = new note_list_item(0, true, false, "new label", get_unique_label_index(), -1);
+            note_list_item new_note_item = new note_list_item(0, true, false, "new label", get_unique_label_index(), -1, false, "");
             add_in_label_and_adapter(0, 0, new_note_item);
             change_map(-1, 1, 1);
             put_new_adapter_label_map(0, 0);
@@ -282,8 +296,8 @@ public class MainActivity extends AppCompatActivity {
                                     int index = content.indexOf(search_string);
                                     if (index != -1) {  // 符合条件
                                         temp_one_item.search_aim = true;
-                                        int start = Math.max(0, index - 5); // 确保索引不越界
-                                        int end = Math.min(content.length(), index + search_string.length() + 5);
+                                        int start = Math.max(0, index - 15); // 确保索引不越界
+                                        int end = Math.min(content.length(), index + search_string.length() + 15);
                                         temp_one_item.search_string = content.substring(start, end);  // 显示匹配到的字符串局部
                                     } else {
                                         temp_one_item.search_aim = false;
@@ -305,6 +319,12 @@ public class MainActivity extends AppCompatActivity {
                             counter[0]--;
                             if (counter[0] == 0) {
                                 progressDialog.dismiss();
+                                for (int i = 0; i < label_names.size(); i++) {
+                                    note_list_item temp_note_item = label_names.get(i);
+                                    if (temp_note_item.type == 0) {
+                                        sort_label_names(i, 3);
+                                    }
+                                }
                                 set_adapter_list_from_main_list(true);
                             }
                         }
@@ -312,7 +332,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
 
 
         user_info_layout.setOnClickListener(new View.OnClickListener() {
@@ -354,11 +373,7 @@ public class MainActivity extends AppCompatActivity {
                 String new_pass_word = change_user_info_password_text_view.getText().toString();
                 String new_confirm_pass_word = change_user_info_password_again_text_view.getText().toString();
 
-                if (!new_user_name.equals(user_name) && new_user_name.length() > 0) {
-                    user_name = new_user_name;
-                    change_user_info_username_text_view.setText(user_name);
-                    show_error("用户名修改成功");
-                }
+                true_user_sign = new_user_name;
 
                 if (new_pass_word.equals(new_confirm_pass_word) && !new_pass_word.equals(pass_word)) {
                     pass_word = new_pass_word;
@@ -379,11 +394,35 @@ public class MainActivity extends AppCompatActivity {
         upload_head_button.setOnClickListener(v -> {
             applyPermission(2);
         });
+
+        boolean need_log_in = true;
+        if (savedInstanceState != null) {
+            String saved_user_name = savedInstanceState.getString("user_name");
+            String saved_pass_word = savedInstanceState.getString("pass_word");
+
+            if(saved_user_name!=null && saved_pass_word!=null){
+                if(saved_user_name.length()>0 && saved_pass_word.length()>0){
+                    need_log_in = false;
+                    label_names = new ArrayList<>();
+                    list_for_adapter = new ArrayList<>();
+                    adapter_map_to_label = new TreeMap<>();
+                    label_map_to_adapter = new TreeMap<>();
+                    deleted_note_to_label_map = new HashMap<>();
+                    delete_label_position = 0;
+                    unlabeled_label_position = 0;
+                    loadData(saved_user_name, saved_pass_word);
+                }
+            }
+        }
+
+        if(need_log_in){
+            start_log_in_activity();
+        }
     }
 
     void saveData(boolean set_data)
     {
-        firestoreHelper = new FirestoreHelper(label_names, deleted_note_to_label_map, header_image_path, label_unique_index, note_unique_index, user_sign, user_name, pass_word);
+        firestoreHelper = new FirestoreHelper(label_names, deleted_note_to_label_map, header_image_path, label_unique_index, note_unique_index, user_sign, user_name, pass_word, true_user_sign);
         firestoreHelper.saveLocalVariablesToDatabase(authHelper.getCurrentUser().getUid(), new FirestoreHelper.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
@@ -413,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
                 user_name = username;
                 pass_word = password;
                 header_image_path = firestoreHelper.user_head_path;
+                true_user_sign = firestoreHelper.true_user_sign;
                 set_data_after_log_in();
             }
 
@@ -502,8 +542,8 @@ public class MainActivity extends AppCompatActivity {
     void set_data_after_log_in() {
         boolean need_save=false;
         if (label_names.size() == 0) {
-            label_names.add(new note_list_item(0, true, false, "Unlabeled notes", get_unique_label_index(), -1));
-            label_names.add(new note_list_item(0, true, false, "Recently Deleted", get_unique_label_index(), -1));
+            label_names.add(new note_list_item(0, true, false, "Unlabeled notes", get_unique_label_index(), -1, false, ""));
+            label_names.add(new note_list_item(0, true, false, "Recently Deleted", get_unique_label_index(), -1, false, ""));
             need_save = true;
         }
         if(need_save){
@@ -517,11 +557,15 @@ public class MainActivity extends AppCompatActivity {
     void set_data_after_check_labels(){
         if(user_sign!=null) {
             hello_user.setText("Hi! " + user_sign);
+            user_sign_text_view.setText(user_sign);
         }
         else{
             hello_user.setText("Hi! " + user_name);
         }
-        change_user_info_username_text_view.setText(user_name);
+        if(true_user_sign!=null) {
+            change_user_info_username_text_view.setText(true_user_sign);
+        }
+        change_user_info_username_unchanged.setText(user_name);
         change_user_info_password_text_view.setText(pass_word);
         change_user_info_password_again_text_view.setText(pass_word);
         if(header_image_path!=null){
@@ -632,12 +676,12 @@ public class MainActivity extends AppCompatActivity {
                         if (temp_item.type == 0 && temp_item.is_hided) {
                             temp_item.is_hided = false;
                             change_in_label_and_adapter(position, index_in_label_names, temp_item);
-                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
+                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index(), false, "");
                             add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
                             int new_shown_item_number = 1 + adapter_hide_to_show(position + 2, index_in_label_names + 2);
                             change_map(position, new_shown_item_number, 1);
                         } else if (temp_item.type == 0 && !temp_item.is_hided) {
-                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index());
+                            note_list_item new_note_item = new note_list_item(1, false, false, "added note", -1, get_unique_note_index(), false, "");
                             add_in_label_and_adapter(position + 1, index_in_label_names + 1, new_note_item);
                             change_map(position, 1, 1);
                         } else {
@@ -738,8 +782,13 @@ public class MainActivity extends AppCompatActivity {
                             need_swap=true;
                         }
                     }
-                    else{  // 修改
+                    else if(sort_mode==2){  // 修改
                         if(temp_item_1.modify_time.compareTo(temp_item_2.modify_time)<0){
+                            need_swap=true;
+                        }
+                    }
+                    else{
+                        if(!temp_item_1.search_aim && temp_item_2.search_aim){
                             need_swap=true;
                         }
                     }
@@ -912,7 +961,7 @@ public class MainActivity extends AppCompatActivity {
         delete_from_adapter_and_label(position_in_adapter, position_in_label);
         change_map(position_in_adapter, -1, -1);
 
-        note_list_item new_deleted_note_item = new note_list_item(1, false, true, note_item.name, -1, get_unique_note_index());
+        note_list_item new_deleted_note_item = new note_list_item(1, false, true, note_item.name, -1, get_unique_note_index(), false, "");
         int original_label_id = find_label_id_of_a_note(position_in_adapter);
         deleted_note_to_label_map.put(""+new_deleted_note_item.note_id, ""+original_label_id);
 

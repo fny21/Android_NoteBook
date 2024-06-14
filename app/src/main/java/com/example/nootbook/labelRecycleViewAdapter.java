@@ -35,17 +35,46 @@ class note_list_item {
     boolean search_aim = false;
     String search_string;
 
-    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_) {
+    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_, boolean search_aim_, String search_string_) {
         type = type_;
         is_hided = is_hided_;
         deleted = deleted_;
         name = name_;
         label_id = label_id_;
         note_id = note_id_;
+        search_aim = search_aim_;
+        search_string = search_string_;
 
         Date currentDate = new Date();
         init_time = currentDate.toString();
         modify_time = currentDate.toString();
+    }
+
+    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_, boolean search_aim_, String search_string_, String init_time_, String modify_time_) {
+        type = type_;
+        is_hided = is_hided_;
+        deleted = deleted_;
+        name = name_;
+        label_id = label_id_;
+        note_id = note_id_;
+        search_aim = search_aim_;
+        search_string = search_string_;
+
+        init_time = init_time_;
+        modify_time = modify_time_;
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("label_id", label_id);
+        map.put("note_id", note_id);
+        map.put("type", type);
+        map.put("is_hided", is_hided);
+        map.put("deleted", deleted);
+        map.put("name", name);
+        map.put("init_time", init_time);
+        map.put("modify_time", modify_time);
+        return map;
     }
 }
 

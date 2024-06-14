@@ -660,6 +660,9 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                     edit_note_video_layout_param.width = Math.round(aim_edit_note_item.video_width * dp_to_px_ratio);
                     edit_note_video_total_box_layout_param.height += video_height_in_px;
                     holder.edit_note_video_view.setVideoURI(aim_edit_note_item.video_uri);
+                    if(aim_edit_note_item.video_controler==null){
+                        aim_edit_note_item.video_controler = new MediaController(this.context);
+                    }
                     holder.edit_note_video_view.setMediaController(aim_edit_note_item.video_controler);
                 }
                 catch (Exception e) {
