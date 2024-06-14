@@ -209,6 +209,12 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             else{
                 holder.label_add_note.setVisibility(View.INVISIBLE);
             }
+            if(one_item.name.startsWith("Recently Deleted") || one_item.name.startsWith("Unlabeled notes")){
+                holder.label_name.setFocusableInTouchMode(false);
+            }
+            else{
+                holder.label_name.setFocusableInTouchMode(true);
+            }
             holder.label_delete_all.setBackgroundResource(R.drawable.rubbish);
             if(one_item.is_hided){
                 holder.label_show_or_hide.setBackgroundResource(R.drawable.arrow_label_hide);
@@ -218,6 +224,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             }
         }
         else if (one_item.type==1) {
+            holder.label_name.setFocusableInTouchMode(true);
             ConstraintLayout.LayoutParams show_or_hide_button_layout = (ConstraintLayout.LayoutParams) holder.label_show_or_hide.getLayoutParams();
             show_or_hide_button_layout.width = Math.round((float) 25 * dp_to_px_ratio);
             holder.label_show_or_hide.setLayoutParams(show_or_hide_button_layout);
@@ -235,7 +242,6 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             Log.e(String.valueOf(this), "unexpected string: string should begin with 'label' or 'note'");
         }
         if(MainActivity.searching && one_item.type==1 && one_item.search_aim) {
-            holder.label_name.setText(one_item.name);
             holder.label_name.setVisibility(View.INVISIBLE);
             holder.label_name_searching_selected.setVisibility(View.VISIBLE);
             String temp_string = one_item.name+"..."+one_item.search_string;
@@ -244,7 +250,9 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             holder.label_name_searching_selected.setMarqueeRepeatLimit(-1); // -1 表示无限重复
             holder.label_name_searching_selected.setFocusable(true);
             holder.label_name_searching_selected.setFocusableInTouchMode(true);
+            holder.label_name_searching_selected.setClickable(false);
             holder.label_name_searching_selected.setSelected(true);
+
         }
         else{
             holder.label_name.setText(one_item.name);

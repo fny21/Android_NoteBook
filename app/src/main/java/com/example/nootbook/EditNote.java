@@ -403,19 +403,16 @@ public class EditNote extends AppCompatActivity {
     void image_clicked(){
         show_message("edit title: image clicked");
         edit_note_label_recycle_view_adapter.add_image_audio_video(1);
-        save_clicked(false);
     }
 
     void audio_clicked(){
         show_message("edit title: audio clicked");
         edit_note_label_recycle_view_adapter.add_image_audio_video(2);
-        save_clicked(false);
     }
 
     void video_clicked(){
         show_message("edit title: video clicked");
         edit_note_label_recycle_view_adapter.add_image_audio_video(3);
-        save_clicked(false);
     }
 
     void bind_on_item_click_listener(){

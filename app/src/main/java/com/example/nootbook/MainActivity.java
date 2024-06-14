@@ -961,7 +961,7 @@ public class MainActivity extends AppCompatActivity {
         delete_from_adapter_and_label(position_in_adapter, position_in_label);
         change_map(position_in_adapter, -1, -1);
 
-        note_list_item new_deleted_note_item = new note_list_item(1, false, true, note_item.name, -1, get_unique_note_index(), false, "");
+        note_list_item new_deleted_note_item = new note_list_item(1, false, true, note_item.name, -1, note_item.note_id, false, "");
         int original_label_id = find_label_id_of_a_note(position_in_adapter);
         deleted_note_to_label_map.put(""+new_deleted_note_item.note_id, ""+original_label_id);
 
