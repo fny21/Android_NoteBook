@@ -35,17 +35,46 @@ class note_list_item {
     boolean search_aim = false;
     String search_string;
 
-    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_) {
+    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_, boolean search_aim_, String search_string_) {
         type = type_;
         is_hided = is_hided_;
         deleted = deleted_;
         name = name_;
         label_id = label_id_;
         note_id = note_id_;
+        search_aim = search_aim_;
+        search_string = search_string_;
 
         Date currentDate = new Date();
         init_time = currentDate.toString();
         modify_time = currentDate.toString();
+    }
+
+    note_list_item(int type_, boolean is_hided_, boolean deleted_, String name_, int label_id_, int note_id_, boolean search_aim_, String search_string_, String init_time_, String modify_time_) {
+        type = type_;
+        is_hided = is_hided_;
+        deleted = deleted_;
+        name = name_;
+        label_id = label_id_;
+        note_id = note_id_;
+        search_aim = search_aim_;
+        search_string = search_string_;
+
+        init_time = init_time_;
+        modify_time = modify_time_;
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("label_id", label_id);
+        map.put("note_id", note_id);
+        map.put("type", type);
+        map.put("is_hided", is_hided);
+        map.put("deleted", deleted);
+        map.put("name", name);
+        map.put("init_time", init_time);
+        map.put("modify_time", modify_time);
+        return map;
     }
 }
 
@@ -180,6 +209,12 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             else{
                 holder.label_add_note.setVisibility(View.INVISIBLE);
             }
+            if(one_item.name.startsWith("Recently Deleted") || one_item.name.startsWith("Unlabeled notes")){
+                holder.label_name.setFocusableInTouchMode(false);
+            }
+            else{
+                holder.label_name.setFocusableInTouchMode(true);
+            }
             holder.label_delete_all.setBackgroundResource(R.drawable.rubbish);
             if(one_item.is_hided){
                 holder.label_show_or_hide.setBackgroundResource(R.drawable.arrow_label_hide);
@@ -189,6 +224,7 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             }
         }
         else if (one_item.type==1) {
+            holder.label_name.setFocusableInTouchMode(true);
             ConstraintLayout.LayoutParams show_or_hide_button_layout = (ConstraintLayout.LayoutParams) holder.label_show_or_hide.getLayoutParams();
             show_or_hide_button_layout.width = Math.round((float) 25 * dp_to_px_ratio);
             holder.label_show_or_hide.setLayoutParams(show_or_hide_button_layout);
@@ -206,7 +242,6 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             Log.e(String.valueOf(this), "unexpected string: string should begin with 'label' or 'note'");
         }
         if(MainActivity.searching && one_item.type==1 && one_item.search_aim) {
-            holder.label_name.setText(one_item.name);
             holder.label_name.setVisibility(View.INVISIBLE);
             holder.label_name_searching_selected.setVisibility(View.VISIBLE);
             String temp_string = one_item.name+"..."+one_item.search_string;
@@ -215,7 +250,9 @@ public class labelRecycleViewAdapter extends RecyclerView.Adapter<labelRecycleVi
             holder.label_name_searching_selected.setMarqueeRepeatLimit(-1); // -1 表示无限重复
             holder.label_name_searching_selected.setFocusable(true);
             holder.label_name_searching_selected.setFocusableInTouchMode(true);
+            holder.label_name_searching_selected.setClickable(false);
             holder.label_name_searching_selected.setSelected(true);
+
         }
         else{
             holder.label_name.setText(one_item.name);
