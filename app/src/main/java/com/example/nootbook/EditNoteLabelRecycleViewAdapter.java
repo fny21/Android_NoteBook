@@ -660,6 +660,9 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
                     edit_note_video_layout_param.width = Math.round(aim_edit_note_item.video_width * dp_to_px_ratio);
                     edit_note_video_total_box_layout_param.height += video_height_in_px;
                     holder.edit_note_video_view.setVideoURI(aim_edit_note_item.video_uri);
+                    if(aim_edit_note_item.video_controler==null){
+                        aim_edit_note_item.video_controler = new MediaController(this.context);
+                    }
                     holder.edit_note_video_view.setMediaController(aim_edit_note_item.video_controler);
                 }
                 catch (Exception e) {
@@ -870,22 +873,21 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             boolean need_delete = false;
             if(edit_item_to_check.type==0){
                 if(edit_item_to_check.edit_text_string.length()==0){
-                    item_to_delete_list.add(i);
                     need_delete = true;
                 }
             }
-        }
-        if(edit_item_to_check.type==1 && edit_item_to_check.image_show==false){
-            need_delete = true;
-        }
-        if(edit_item_to_check.type==2 && edit_item_to_check.audio_show==false){
-            need_delete = true;
-        }
-        if(edit_item_to_check.type==3 && edit_item_to_check.video_show==false){
-            need_delete = true;
-        }
-        if(need_delete){
-            item_to_delete_list.add(i);
+            if(edit_item_to_check.type==1 && edit_item_to_check.image_show==false){
+                need_delete = true;
+            }
+            if(edit_item_to_check.type==2 && edit_item_to_check.audio_show==false){
+                need_delete = true;
+            }
+            if(edit_item_to_check.type==3 && edit_item_to_check.video_show==false){
+                need_delete = true;
+            }
+            if(need_delete){
+                item_to_delete_list.add(i);
+            }
         }
 
         for(int item_to_delete : item_to_delete_list){

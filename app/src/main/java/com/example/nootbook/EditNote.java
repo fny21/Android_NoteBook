@@ -71,6 +71,21 @@ public class EditNote extends AppCompatActivity {
     private boolean isNewNote = false;
 
     @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(note_id!=null){
+            if(note_id.length()>0){
+                outState.putString("note_id", note_id);
+            }
+        }
+        if(note_name!=null){
+            if(note_name.length()>0){
+                outState.putString("note_name", note_name);
+            }
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_one_note);
@@ -84,6 +99,20 @@ public class EditNote extends AppCompatActivity {
         // log note_id:
         Log.d("HL", "note_id: " + note_id);
         note_name = intent.getStringExtra("note_message");
+
+        if(Objects.equals(note_id, "-1") || note_name==null){
+            if (savedInstanceState != null) {
+                String saved_note_id = savedInstanceState.getString("note_id");
+                String saved_note_name = savedInstanceState.getString("note_name");
+
+                if(saved_note_id!=null && saved_note_name!=null){
+                    if(saved_note_id.length()>0 && saved_note_name.length()>0){
+                        note_id = saved_note_id;
+                        note_name = saved_note_name;
+                    }
+                }
+            }
+        }
 
         dp_to_px_ratio = getResources().getDisplayMetrics().density;
 
@@ -110,7 +139,7 @@ public class EditNote extends AppCompatActivity {
             back_clicked();
         });
         edit_save_button.setOnClickListener(v -> {
-            save_clicked();
+            save_clicked(false);
         });
         edit_image_button.setOnClickListener(v -> {
             image_clicked();
@@ -195,14 +224,14 @@ public class EditNote extends AppCompatActivity {
                             item_list_for_adapter.add(noteItem);
                         }
                     }
-                    if(item_list_for_adapter.size()==0) {
-                        edit_note_item new_text_item = new edit_note_item(0);
-                        new_text_item.edit_text_string = "";
-                        new_text_item.position = 0;
-                        item_list_for_adapter.add(new_text_item);
-                    }
-                    edit_note_label_recycle_view_adapter.notifyDataSetChanged();
                 }
+                if(item_list_for_adapter.size()==0) {
+                    edit_note_item new_text_item = new edit_note_item(0);
+                    new_text_item.edit_text_string = "";
+                    new_text_item.position = 0;
+                    item_list_for_adapter.add(new_text_item);
+                }
+                edit_note_label_recycle_view_adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -213,7 +242,7 @@ public class EditNote extends AppCompatActivity {
 
     }
 
-    void save_clicked() {
+    void save_clicked(boolean quit) {
         show_message("edit title: save clicked");
         edit_note_label_recycle_view_adapter.delete_null_edit_text();
 
@@ -268,6 +297,9 @@ public class EditNote extends AppCompatActivity {
                 @Override
                 public void onSuccess(Object result) {
                     show_message("笔记已保存");
+                    if(quit){
+                        quit();
+                    }
                 }
 
                 @Override
@@ -280,6 +312,9 @@ public class EditNote extends AppCompatActivity {
                 @Override
                 public void onSuccess(Object result) {
                     show_message("笔记已更新");
+                    if(quit){
+                        quit();
+                    }
                 }
 
                 @Override
@@ -292,6 +327,10 @@ public class EditNote extends AppCompatActivity {
 
 
     void back_clicked() {
+        save_clicked(true);
+    }
+
+    void quit(){
         LargeModelService largeModelService = new LargeModelService();
 
         String userId = authHelper.getCurrentUser().getUid();
@@ -306,7 +345,6 @@ public class EditNote extends AppCompatActivity {
                         int type = ((Long) item.get("type")).intValue();
                         if (type == 0) {  // Text
                             contentBuilder.append((String) item.get("edit_text_string"));
-                            break;
                         }
                     }
                     String content = contentBuilder.toString();
@@ -355,7 +393,7 @@ public class EditNote extends AppCompatActivity {
     }
 
     private void saveAndReturn() {
-        save_clicked();
+        save_clicked(false);
         show_message("edit title: back clicked");
         Intent returnIntent = new Intent();
         returnIntent.putExtra("new_name", note_name);

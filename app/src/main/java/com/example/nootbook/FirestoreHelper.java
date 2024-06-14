@@ -32,6 +32,7 @@ public class FirestoreHelper {
     public String user_sign;
     public String user_name;
     public String pass_word;
+    public String true_user_sign;
 
     public String user_head_path;
 
@@ -41,7 +42,7 @@ public class FirestoreHelper {
         this.db = FirebaseFirestore.getInstance();
     }
 
-    public FirestoreHelper(List<note_list_item> label_names, HashMap<String, String> deleted_note_to_label_map, String header_image_path,  int label_unique_index, int note_unique_index, String user_sign, String user_name, String pass_word) {
+    public FirestoreHelper(List<note_list_item> label_names, HashMap<String, String> deleted_note_to_label_map, String header_image_path,  int label_unique_index, int note_unique_index, String user_sign, String user_name, String pass_word, String true_user_sign) {
         this.db = FirebaseFirestore.getInstance();
         this.label_names = label_names;
         this.deleted_note_to_label_map = deleted_note_to_label_map;
@@ -51,6 +52,7 @@ public class FirestoreHelper {
         this.user_name = user_name;
         this.pass_word = pass_word;
         this.user_head_path = header_image_path;
+        this.true_user_sign = true_user_sign;
     }
 
     public List<note_list_item> getLabel_names() {
@@ -66,6 +68,7 @@ public class FirestoreHelper {
         data.put("user_name", user_name);
         data.put("pass_word", pass_word);
         data.put("user_head_path", user_head_path);
+        data.put("true_user_sign", true_user_sign);
 
         // 将 label_names 转换为 List<Map<String, Object>>
         List<Map<String, Object>> labelNamesList = new ArrayList<>();
@@ -90,6 +93,16 @@ public class FirestoreHelper {
             itemMap.put("name", item.name);
             itemMap.put("label_id", item.label_id);
             itemMap.put("note_id", item.note_id);
+            if(item.search_aim){
+                temp_string = "true";
+            }
+            else{
+                temp_string = "false";
+            }
+            itemMap.put("search_aim", temp_string);
+            itemMap.put("search_string", item.search_string);
+            itemMap.put("init_time", item.init_time);
+            itemMap.put("modify_time", item.modify_time);
             labelNamesList.add(itemMap);
         }
         data.put("label_names", labelNamesList);
@@ -141,6 +154,10 @@ public class FirestoreHelper {
                                 if(temp_string!=null){
                                     pass_word = temp_string;
                                 }
+                                temp_string = document.getString("true_user_sign");
+                                if(temp_string!=null){
+                                    true_user_sign = temp_string;
+                                }
                                 user_sign = document.getString("user_sign");
                                 if(user_sign==null){
                                     user_sign = user_name;
@@ -157,6 +174,7 @@ public class FirestoreHelper {
                                     for (Map<String, Object> itemMap : labelNamesList) {
                                         boolean is_hided;
                                         boolean deleted;
+                                        boolean search_aim;
                                         String temp_temp_string = (String) itemMap.get("is_hided");
                                         if (temp_temp_string.startsWith("tru")) {
                                             is_hided = true;
@@ -170,14 +188,42 @@ public class FirestoreHelper {
                                             deleted = false;
                                         }
 
-                                        note_list_item item = new note_list_item(
-                                                (int) ((Long) itemMap.get("type")).intValue(),
-                                                is_hided,
-                                                deleted,
-                                                (String) itemMap.get("name"),
-                                                (int) ((Long) itemMap.get("label_id")).intValue(),
-                                                (int) ((Long) itemMap.get("note_id")).intValue()
-                                        );
+                                        temp_temp_string = (String) itemMap.get("search_aim");
+                                        if (temp_temp_string.startsWith("tru")) {
+                                            search_aim = true;
+                                        } else {
+                                            search_aim = false;
+                                        }
+                                        String init_time = (String) itemMap.get("init_time");
+                                        String modify_time = (String) itemMap.get("modify_time");
+
+                                        note_list_item item;
+                                        if(init_time==null || modify_time==null) {
+                                            item = new note_list_item(
+                                                    ((Long) itemMap.get("type")).intValue(),
+                                                    is_hided,
+                                                    deleted,
+                                                    (String) itemMap.get("name"),
+                                                    ((Long) itemMap.get("label_id")).intValue(),
+                                                    ((Long) itemMap.get("note_id")).intValue(),
+                                                    search_aim,
+                                                    (String) itemMap.get("name")
+                                            );
+                                        }
+                                        else{
+                                            item = new note_list_item(
+                                                    ((Long) itemMap.get("type")).intValue(),
+                                                    is_hided,
+                                                    deleted,
+                                                    (String) itemMap.get("name"),
+                                                    ((Long) itemMap.get("label_id")).intValue(),
+                                                    ((Long) itemMap.get("note_id")).intValue(),
+                                                    search_aim,
+                                                    (String) itemMap.get("name"),
+                                                    init_time,
+                                                    modify_time
+                                            );
+                                        }
                                         label_names.add(item);
                                     }
                                 }

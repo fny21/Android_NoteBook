@@ -134,6 +134,18 @@
             app:layout_constraintTop_toTopOf="parent"
             android:background="#eeeeee">
 
+            <TextView
+                android:id="@+id/change_user_info_user_name_unchange"
+                android:layout_width="280dp"
+                android:layout_height="50dp"
+                android:gravity="center"
+                android:text="拍照"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toTopOf="@+id/change_user_info_head_line"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/change_user_info_head_line"
                 android:layout_width="280dp"
@@ -141,7 +153,7 @@
                 app:layout_constraintBottom_toTopOf="@id/change_user_info_sign_line"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toBottomOf="@id/change_user_info_user_name_unchange">
 
                 <ImageView
                     android:id="@+id/change_user_info_head"
@@ -193,7 +205,7 @@
                     android:id="@+id/change_user_info_sign_image"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:background="@drawable/sign"
+                    android:background="@drawable/nick_name"
                     tools:ignore="MissingConstraints"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -209,7 +221,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/change_user_info_sign_image"
                     android:gravity="center"
-                    android:hint="个性签名"
+                    android:hint="昵称"
                     android:textSize="18sp"
                     android:inputType="text"
                     android:maxLines="1"
@@ -230,7 +242,7 @@
                     android:id="@+id/change_user_info_username_image"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:background="@drawable/user"
+                    android:background="@drawable/sign"
                     tools:ignore="MissingConstraints"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -246,11 +258,11 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/change_user_info_username_image"
                     android:gravity="center"
-                    android:hint="username"
+                    android:hint="个性签名"
                     android:textSize="18sp"
                     android:inputType="text"
                     android:maxLines="1"
-                    android:maxLength="20"/>
+                    android:maxLength="40"/>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
