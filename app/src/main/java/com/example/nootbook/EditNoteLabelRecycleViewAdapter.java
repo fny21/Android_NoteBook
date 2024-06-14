@@ -750,7 +750,7 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
             holder.edit_note_edit_text.setText(aim_edit_note_item.edit_text_string);
             int edit_text_lines = holder.edit_note_edit_text.getLineCount();
             if(edit_text_lines<1){
-                edit_text_lines=1;
+                edit_text_lines=1+aim_edit_note_item.edit_text_string.length()/20;
             }
             aim_edit_note_item.edit_text_line_num = edit_text_lines;
             if(position == this.item_list.size()-1){  // 这是最后一个
@@ -867,11 +867,25 @@ public class EditNoteLabelRecycleViewAdapter extends RecyclerView.Adapter<EditNo
         List<Integer> item_to_delete_list = new ArrayList<>();
         for(int i=item_list.size()-2; i>=0; i--){
             edit_note_item edit_item_to_check = item_list.get(i);
+            boolean need_delete = false;
             if(edit_item_to_check.type==0){
                 if(edit_item_to_check.edit_text_string.length()==0){
                     item_to_delete_list.add(i);
+                    need_delete = true;
                 }
             }
+        }
+        if(edit_item_to_check.type==1 && edit_item_to_check.image_show==false){
+            need_delete = true;
+        }
+        if(edit_item_to_check.type==2 && edit_item_to_check.audio_show==false){
+            need_delete = true;
+        }
+        if(edit_item_to_check.type==3 && edit_item_to_check.video_show==false){
+            need_delete = true;
+        }
+        if(need_delete){
+            item_to_delete_list.add(i);
         }
 
         for(int item_to_delete : item_to_delete_list){
