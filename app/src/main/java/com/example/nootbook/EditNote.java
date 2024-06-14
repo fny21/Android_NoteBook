@@ -311,6 +311,12 @@ public class EditNote extends AppCompatActivity {
                     }
                     String content = contentBuilder.toString();
 
+                    if(content.isEmpty()){
+                        show_message("No content to summarize.");
+                        saveAndReturn();
+                        return;
+                    }
+
                     largeModelService.generateSummary(content, new LargeModelCallback() {
                         @Override
                         public void onSummaryGenerated(String large_model_result) {

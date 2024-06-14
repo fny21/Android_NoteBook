@@ -4,7 +4,7 @@
             "outputFile": "com.example.nootbook.test.app-mergeDebugAndroidTestResources-3:/values/values.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\c1123\\.gradle\\caches\\transforms-3\\fcd7ce036c54caa4789fcf4d77e68b84\\transformed\\core-1.5.0\\res\\values\\values.xml",
+                    "source": "C:\\Users\\c1123\\.gradle\\caches\\transforms-4\\8aeb7834e65233f69e28c6faf71b3b1b\\transformed\\core-1.5.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "4,11",
                         "startColumns": "0,0",

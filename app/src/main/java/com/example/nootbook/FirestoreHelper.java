@@ -220,6 +220,27 @@ public class FirestoreHelper {
                 });
     }
 
+    public void updateUser(String userId, String username, String signature, String avatarUri,final FirestoreCallback callback) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("username", username);
+        user.put("signature", signature);
+        user.put("avatarUri", avatarUri);
+
+        db.collection("users").document(userId)
+                .update(user)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(null);
+                        } else {
+                            callback.onFailure(task.getException());
+                        }
+                    }
+                });
+    }
+
+
 
     // 添加笔记
     public void addNote(String userId, String noteId, Map<String, Object> note, final FirestoreCallback callback) {
